@@ -1,0 +1,19 @@
+capi-media-image-util (0.1.0-6) unstable; urgency=low
+
+  * update image_util_decode_jpeg_from_memory impl.
+  * Git: api/image-util
+  * capi-media-image-util_0.1.0-6
+
+ -- Seungkeun Lee <sngn.lee@samsung.com>  Fri, 23 Dec 2011 17:41:46 +0900
+
+capi-media-image-util (0.1.0-5) unstable; urgency=low
+
+  * update version
+
+ -- Seungkeun Lee <sngn.lee@samsung.com>  Thu, 15 Dec 2011 12:57:39 +0900
+
+capi-media-image-util (0.0.1-1) unstable; urgency=low
+
+  * Initial release.
+
+ -- Seungkeun Lee <sngn.lee@samsung.com>  Wed, 07 Dec 2011 12:45:39 +0900
