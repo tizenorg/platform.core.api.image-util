@@ -55,7 +55,7 @@ bool decode_jpeg_cb( image_util_colorspace_e colorspace , void * user_data){
 		int ret;
 		unsigned char * buffer = NULL;
 		int w, h;
-		int size;
+		unsigned int size;
 
 		const char *path = (const char*)user_data;
 		
@@ -116,7 +116,7 @@ bool encode_jpeg_cb( image_util_colorspace_e colorspace , void * user_data){
 	buffer = malloc(size);
 	ret = image_util_convert_colorspace(buffer, colorspace , img_data->buffer , img_data->w, img_data->h , IMAGE_UTIL_COLORSPACE_BGRA8888);
 
-	sprintf(filename, "test_%s.jpg", colorspace_str_tbl[colorspace]);	
+	snprintf(filename, 255, "test_%s.jpg", colorspace_str_tbl[colorspace]);	
 	ret = image_util_encode_jpeg(buffer, img_data->w , img_data->h , colorspace, 100, filename);
 	printf("%s encode jpg %d\n",  colorspace_str_tbl[colorspace] , ret);	
 
