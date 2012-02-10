@@ -1,3 +1,11 @@
+capi-media-image-util (0.1.0-7) unstable; urgency=low
+
+  * boundary check update
+  * Git: slp-source.sec.samsung.net:slp/api/image-util
+  * Tag: capi-media-image-util_0.1.0-7 
+
+ -- Seungkeun Lee <sngn.lee@samsung.com>  Tue, 31 Jan 2012 14:04:32 +0900
+
 capi-media-image-util (0.1.0-6) unstable; urgency=low
 
   * update image_util_decode_jpeg_from_memory impl.

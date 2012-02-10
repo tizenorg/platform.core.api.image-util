@@ -143,7 +143,7 @@ int image_util_transform( unsigned char * dest , int *dest_width , int *dest_hei
 		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
 	if( colorspace < 0 || colorspace >= sizeof(_convert_colorspace_tbl)/sizeof(int))
 		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
-	if( dest_rotation < 0 || dest_rotation >= IMAGE_UTIL_ROTATION_FLIP_VERT )
+	if( dest_rotation < 0 || dest_rotation > IMAGE_UTIL_ROTATION_FLIP_VERT )
 		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
 	if( dest_width == NULL || dest_height == NULL)
 		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
