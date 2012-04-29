@@ -1,3 +1,11 @@
+capi-media-image-util (0.1.0-9) unstable; urgency=low
+
+  * Fix dependency
+  * Git: slp-source.sec.samsung.net:slp/api/image-util
+  * Tag: capi-media-image-util_0.1.0-9
+
+ -- Seungkeun Lee <sngn.lee@samsung.com>  Wed, 14 Mar 2012 13:30:17 +0900
+
 capi-media-image-util (0.1.0-8) unstable; urgency=low
 
   * add so version

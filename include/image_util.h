@@ -217,7 +217,7 @@ int image_util_transform( unsigned char * dest , int *dest_width , int *dest_hei
  * @see	image_util_decode_jpeg_from_memory()
  * @see	image_util_foreach_supported_jpeg_colorspace() 
  */
-int image_util_decode_jpeg( const char *path , image_util_colorspace_e colorspace, unsigned char ** image_buffer , int *width , int *height ,unsigned int *size);
+int image_util_decode_jpeg( const char *path , image_util_colorspace_e colorspace, unsigned char ** image_buffer , int *width , int *height , unsigned int *size);
 
 /**
  * @brief Decodes jpeg image(on memory) to the buffer

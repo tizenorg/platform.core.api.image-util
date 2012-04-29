@@ -1,55 +1,58 @@
 Name:       capi-media-image-util
 Summary:    A Image Utility library in Tizen Native API
 Version:    0.1.0
-Release:    1
+Release:    9
 Group:      TO_BE/FILLED_IN
 License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz
-BuildRequires:  cmake
-BuildRequires:  pkgconfig(capi-base-common)
-BuildRequires:  pkgconfig(mmutil-jpeg)
-BuildRequires:  pkgconfig(mmutil-imgp)
 BuildRequires:  pkgconfig(dlog)
 BuildRequires:  pkgconfig(mm-common)
-Requires(post): /sbin/ldconfig  
-Requires(postun): /sbin/ldconfig
+BuildRequires:  pkgconfig(mmutil-jpeg)
+BuildRequires:  pkgconfig(mmutil-imgp)
+BuildRequires:  pkgconfig(capi-base-common)
+
+BuildRequires:  cmake
+BuildRequires:  gettext-devel
 
 %description
+A Image Utility library in Tizen Native API
 
 
-%package devel
-Summary:  A Image Utility library in Tizen Native API (Development)
-Group:    TO_BE/FILLED_IN
-Requires: %{name} = %{version}-%{release}
+%package devel 
+Summary:    A Image Utility library in Tizen Native API (Developement)
+Group:      TO_BE_FILLED 
+Requires:   %{name} = %{version}-%{release}
+Requires:  pkgconfig(dlog)
+Requires:  pkgconfig(mm-common)
+Requires:  pkgconfig(mmutil-jpeg)
+Requires:  pkgconfig(mmutil-imgp)
+Requires:  pkgconfig(capi-base-common)
 
 %description devel
-
-
+A Image Utility library in Tizen Native API (Developement)
 
 %prep
 %setup -q
 
-
 %build
-FULLVER=%{version}
-MAJORVER=`echo ${FULLVER} | cut -d '.' -f 1`
-cmake . -DFULLVER=${FULLVER} -DMAJORVER=${MAJORVER}
-
-
+MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
+cmake . -DCMAKE_INSTALL_PREFIX=/usr -DFULLVER=%{version} -DMAJORVER=${MAJORVER}
 make %{?jobs:-j%jobs}
 
 %install
 rm -rf %{buildroot}
 %make_install
 
-%post -p /sbin/ldconfig
+%post
 
-%postun -p /sbin/ldconfig
+%postun
 
 
 %files
-%{_libdir}/libcapi-media-image-util.so*
+%{_libdir}/lib*.so.*
 
-%files devel
-%{_includedir}/media/*.h
+%files devel 
+%{_libdir}/lib*.so
 %{_libdir}/pkgconfig/*.pc
+%{_includedir}/media/*.h
+

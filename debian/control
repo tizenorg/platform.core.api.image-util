@@ -7,12 +7,12 @@ Build-Depends: debhelper (>= 5), libmm-utility-dev , capi-base-common-dev , dlog
 
 Package: capi-media-image-util
 Architecture: any
-Depends: ${shilbs:Depends}, ${misc:Depends} , libmm-utility
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: A Image Utility library in Tizen Native API
 
 Package: capi-media-image-util-dev
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, capi-media-image-util (= ${Source-Version}), dlog-dev, capi-base-common-dev, libmm-utility-dev 
+Depends: ${shlibs:Depends}, ${misc:Depends}, capi-media-image-util (= ${Source-Version}), capi-base-common-dev
 Description: A Image Utility library in Tizen Native API (DEV)
 
 Package: capi-media-image-util-dbg
