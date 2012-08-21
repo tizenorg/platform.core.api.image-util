@@ -22,6 +22,43 @@
 #include <stdio.h>
 #include <image_util.h>
 
+/*
+ * Function displaying image on canva
+ */
+static void _display_buffer_as_efl_image(Evas_Object *img, unsigned char *buf, int w, int h, image_util_colorspace_e colorspace)
+{
+	unsigned int sizeBGRA8888;
+	int err;
+
+	/*
+	 * Calculates the size of image buffer for the specified resolution and colorspace
+	 */
+	err = image_util_calculate_buffer_size(w, h, IMAGE_UTIL_COLORSPACE_BGRA8888, &sizeBGRA8888);
+	if ( IMAGE_UTIL_ERROR_NONE != err)
+		return;
+	static unsigned char *new_buff;
+	free(new_buff);
+	new_buff = malloc(sizeBGRA8888);
+
+	/*
+	 * Convert the image's colorspace
+	 */
+	err = image_util_convert_colorspace(new_buff, IMAGE_UTIL_COLORSPACE_BGRA8888, buf, w, h, colorspace);
+	if ( IMAGE_UTIL_ERROR_NONE != err) {
+		free(new_buff);
+		return;
+	}
+
+	evas_object_hide(img);
+	evas_object_image_size_set(img, w, h);
+	evas_object_image_colorspace_set(img, EVAS_COLORSPACE_ARGB8888);
+	evas_object_image_data_copy_set(img, (void*)new_buff);
+	evas_object_image_reload(img);
+
+	evas_object_image_data_update_add(img,0,0, w, h);
+	evas_object_show(img);
+}
+
 struct raw_image{
 	unsigned char *buffer;
 	int size;
@@ -32,7 +69,7 @@ struct raw_image{
 Evas_Object* img;
 
 char *colorspace_str_tbl[] = 	{
-	"IMAGE_UTIL_COLORSPACE_YUV420", 			/**< YUV420 */
+	"IMAGE_UTIL_COLORSPACE_YV12", 			/**< YV12 */
 	"IMAGE_UTIL_COLORSPACE_YUV422", 			/**< YUV422 */
 	"IMAGE_UTIL_COLORSPACE_I420", 				/**< I420 */
 	"IMAGE_UTIL_COLORSPACE_NV12", 				/**< NV12 */
@@ -67,26 +104,9 @@ bool decode_jpeg_cb( image_util_colorspace_e colorspace , void * user_data){
 		printf("image (%dx%d) - %dbyte , ret = %d(%x)\n", w,h, size, ret, ret);
 		if( ret != 0 )
 			return true;
-			
-		
-		evas_object_image_size_set(img, w, h);
-		unsigned char *bgra8888_image = evas_object_image_data_get(img, true);	
-		ret = image_util_convert_colorspace(bgra8888_image , IMAGE_UTIL_COLORSPACE_BGRA8888, buffer , w, h, colorspace );
-		printf("convert %d\n", ret);
-		free(buffer);
-		
-		evas_object_image_data_set(img, bgra8888_image);
-		
-		evas_object_hide(img);		
-		evas_object_resize(img, w,h);	
-		evas_object_image_fill_set(img, 0, 0,  w, h);	
-		evas_object_image_data_update_add(img,0,0, w, h);
-		evas_object_show(img);	
 
-		
-		sleep(1);
-		
-
+		_display_buffer_as_efl_image( img, buffer, w, h, colorspace);
+		sleep(2);
 		return true;
 	
 }
@@ -110,7 +130,6 @@ bool encode_jpeg_cb( image_util_colorspace_e colorspace , void * user_data){
 	char filename[255];
 
 	printf("jpeg encode from [%s]\n", colorspace_str_tbl[colorspace] );
-
 	
 	image_util_calculate_buffer_size(img_data->w,img_data->h, colorspace, &size);
 	buffer = malloc(size);
@@ -163,7 +182,7 @@ void colorspace_convert_test( const char *path ){
 	int j;
 	int ret;
 
-	for( i = IMAGE_UTIL_COLORSPACE_YUV420 ; i <= IMAGE_UTIL_COLORSPACE_BGRX8888 ; i++ ){
+	for( i = IMAGE_UTIL_COLORSPACE_YV12 ; i <= IMAGE_UTIL_COLORSPACE_BGRX8888 ; i++ ){
 		unsigned char *buffer;
 		unsigned int size;
 
@@ -175,7 +194,7 @@ void colorspace_convert_test( const char *path ){
 		ret = image_util_convert_colorspace(buffer, i , origin_buffer, w, h, IMAGE_UTIL_COLORSPACE_BGRA8888);
 		printf("[%d] convert %s -> %s\n", ret , colorspace_str_tbl[IMAGE_UTIL_COLORSPACE_BGRA8888], colorspace_str_tbl[i]);
 		
-		for( j = IMAGE_UTIL_COLORSPACE_YUV420 ; j <= IMAGE_UTIL_COLORSPACE_BGRX8888 ; j++){
+		for( j = IMAGE_UTIL_COLORSPACE_YV12 ; j <= IMAGE_UTIL_COLORSPACE_BGRX8888 ; j++){
 			if( i == j )
 				continue;
 			unsigned char *buffer2;
@@ -203,47 +222,49 @@ void colorspace_convert_test( const char *path ){
 }
 
 
-
-void transform_test( const char *path ){
+void rotate_test( const char *path ){
 	printf("****************\n");
-	printf("transform_test TEST - start\n");
+	printf("rotate_test TEST - start\n");
 	printf("****************\n");	
-
-	
-	int w,h;
-	evas_object_image_file_set(img, path, NULL);
-	unsigned char* origin_buffer = evas_object_image_data_get(img, false);	
-	evas_object_image_size_get(img, &w, &h);
-	evas_object_resize(img, w,h);	
-
+	int w,h,dw,dh;
 	int ret;
-
-
-	unsigned char *buffer;
+	unsigned char *origin_buffer;
 	unsigned int size;
-	int dw, dh;
-
-	dh = 800;
-	dw = 200;
-
-	image_util_calculate_buffer_size(dw, dh, IMAGE_UTIL_COLORSPACE_BGRA8888 , &size);
-	buffer = malloc(size);
-
-	printf("%d, %d\n", dw, dh);
-	ret = image_util_transform(buffer , &dw, &dh , IMAGE_UTIL_ROTATION_NONE , origin_buffer, w, h, IMAGE_UTIL_COLORSPACE_BGRA8888);
-	printf("[%d] image_util_transform\n", ret);
-
-	printf("%d, %d\n", dw, dh);
-
-	evas_object_hide(img);		
-	evas_object_resize(img, dw,dh);	
-	evas_object_image_size_set(img, dw, dh);
-	evas_object_image_data_set(img, buffer);	
+	int i;
 	
-	evas_object_image_fill_set(img, 0, 0,  dw, dh);	
-	evas_object_image_data_update_add(img,0,0, dw, dh);
-	evas_object_show(img);	
 
+	w = h = 0;
+	ret = image_util_decode_jpeg( path ,IMAGE_UTIL_COLORSPACE_RGB888,  &origin_buffer, &w, &h , &size );
+	printf("image (%dx%d) - %dbyte , ret = %d(%x)\n", w,h, size, ret, ret);
+
+	_display_buffer_as_efl_image(img, origin_buffer, w,h, IMAGE_UTIL_COLORSPACE_RGB888);
+	sleep(2);
+
+	unsigned char *dest_buffer = NULL;
+	unsigned int nsize;
+	dw = h;
+	dh = w;
+	image_util_calculate_buffer_size( dw,dh, IMAGE_UTIL_COLORSPACE_RGB888 , &nsize);
+	dest_buffer = malloc(nsize);
+
+	for(	i = 0 ; i < 10 ; i ++ ){
+		ret = image_util_rotate(dest_buffer, &dw,&dh, IMAGE_UTIL_ROTATION_90, origin_buffer, w,h, IMAGE_UTIL_COLORSPACE_RGB888);
+		printf("image_util_rotate ret = %d\n", ret);
+		printf("%x%x%x\n", dest_buffer[0], dest_buffer[20], dest_buffer[44]);
+		_display_buffer_as_efl_image(img, dest_buffer, dw,dh, IMAGE_UTIL_COLORSPACE_RGB888);
+		sleep(2);
+		int tw, th;
+		unsigned char *tmp_buffer;
+		tmp_buffer = dest_buffer;
+		dest_buffer = origin_buffer;
+		origin_buffer = tmp_buffer;
+		tw = dw;
+		th = dh;
+		dw = w;
+		dh = h;
+		w = tw;
+		h = th;
+	}
 	
 	printf("****************\n");
 	printf("transform_test TEST - end\n");
@@ -252,10 +273,10 @@ void transform_test( const char *path ){
 }
 
 void* test_main(void *arg){
-	//jpeg_decode_test("sample.jpg");
+	jpeg_decode_test("sample.jpg");
 	//jpeg_encode_test("sample.jpg");
 	//colorspace_convert_test("sample.jpg");
-	transform_test("sample.jpg");
+	rotate_test("sample.jpg");
 
 	
 	return NULL;

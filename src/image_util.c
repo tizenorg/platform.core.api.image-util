@@ -111,7 +111,7 @@ int image_util_foreach_supported_jpeg_colorspace(image_util_supported_jpeg_color
 	return IMAGE_UTIL_ERROR_NONE;
 }
 
-int image_util_convert_colorspace( unsigned char * dest , image_util_colorspace_e dest_colorspace , unsigned char * src ,  int width, int height, image_util_colorspace_e src_colorspace){
+int image_util_convert_colorspace( unsigned char * dest , image_util_colorspace_e dest_colorspace , const unsigned char * src ,  int width, int height, image_util_colorspace_e src_colorspace){
 
 	int ret;
 	if( dest == NULL || src == NULL )
@@ -137,7 +137,31 @@ int image_util_calculate_buffer_size(int width , int height, image_util_colorspa
 	return _convert_image_util_error_code(__func__, ret);
 }
 
-int image_util_transform( unsigned char * dest , int *dest_width , int *dest_height , image_util_rotation_e dest_rotation , unsigned char * src , int src_width, int src_height , image_util_colorspace_e colorspace){
+int image_util_resize(unsigned char * dest, int *dest_width , int *dest_height, const unsigned char * src, int src_width, int src_height , image_util_colorspace_e colorspace){
+	int ret;
+	if( dest == NULL || src == NULL )
+		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+	if( colorspace < 0 || colorspace >= sizeof(_convert_colorspace_tbl)/sizeof(int))
+		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+	if( dest_width == NULL || dest_height == NULL)
+		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+
+	if( *dest_width <= 0 || dest_height <= 0 )
+		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+
+	unsigned int dest_w, dest_h;
+	dest_w = *dest_width;
+	dest_h = *dest_height;
+	ret = mm_util_resize_image(src, src_width, src_height, _convert_colorspace_tbl[colorspace], dest,&dest_w, &dest_h);
+	if( ret == 0){
+		*dest_width = dest_w;
+		*dest_height = dest_h;
+	}
+
+	return _convert_image_util_error_code(__func__, ret);
+}
+
+int image_util_rotate(unsigned char * dest, int *dest_width, int *dest_height, image_util_rotation_e dest_rotation, const unsigned char * src, int src_width, int src_height, image_util_colorspace_e colorspace){
 	int ret;
 	if( dest == NULL || src == NULL )
 		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
@@ -148,20 +172,36 @@ int image_util_transform( unsigned char * dest , int *dest_width , int *dest_hei
 	if( dest_width == NULL || dest_height == NULL)
 		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
 
-	if( *dest_width <= 0 || *dest_height <= 0 )
-		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
-
 	unsigned int dest_w, dest_h;
-	dest_w = *dest_width;
-	dest_h = *dest_height;
 	ret = mm_util_rotate_image(src, src_width, src_height, _convert_colorspace_tbl[colorspace], dest,&dest_w, &dest_h, dest_rotation);
 	if( ret == 0){
 		*dest_width = dest_w;
-		*dest_height = dest_h;		
+		*dest_height = dest_h;
 	}
-		
-	
-	return _convert_image_util_error_code(__func__, ret);	
+	return _convert_image_util_error_code(__func__, ret);
+}
+
+int image_util_crop(unsigned char * dest, int x , int y, int* width, int* height, const unsigned char *src, int src_width, int src_height, image_util_colorspace_e colorspace){
+	int ret;
+	if( dest == NULL || src == NULL )
+		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+	if( colorspace < 0 || colorspace >= sizeof(_convert_colorspace_tbl)/sizeof(int))
+		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+	if( width == NULL )
+		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+	if( src_width <= x  || src_height <= y || src_width < x+*width || src_height< y+*height)
+		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+
+	unsigned int dest_w, dest_h;
+	dest_w = *width;
+	dest_h = *height;
+	ret = mm_util_crop_image( src, src_width, src_height, _convert_colorspace_tbl[colorspace], x, y, &dest_w, &dest_h, dest);
+	if( ret == 0){
+		*width = dest_w;
+		*height = dest_h;
+	}
+
+	return _convert_image_util_error_code(__func__, ret);
 }
 
 int image_util_decode_jpeg( const char *path , image_util_colorspace_e colorspace, unsigned char ** image_buffer , int *width , int *height , unsigned int *size){
@@ -189,7 +229,7 @@ int image_util_decode_jpeg( const char *path , image_util_colorspace_e colorspac
 	return _convert_image_util_error_code(__func__, ret);
 }
 
-int image_util_decode_jpeg_from_memory( unsigned char * jpeg_buffer , int jpeg_size , image_util_colorspace_e colorspace, unsigned char ** image_buffer , int *width , int *height , unsigned int *size){
+int image_util_decode_jpeg_from_memory( const unsigned char * jpeg_buffer , int jpeg_size , image_util_colorspace_e colorspace, unsigned char ** image_buffer , int *width , int *height , unsigned int *size){
 	int ret;
 	if( jpeg_buffer == NULL || image_buffer == NULL || size == NULL)
 		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
@@ -215,7 +255,7 @@ int image_util_decode_jpeg_from_memory( unsigned char * jpeg_buffer , int jpeg_s
 	return _convert_image_util_error_code(__func__, ret);	
 }
 
-int image_util_encode_jpeg( unsigned char *buffer, int width, int height, image_util_colorspace_e colorspace,  int quality, const char *path){
+int image_util_encode_jpeg( const unsigned char *buffer, int width, int height, image_util_colorspace_e colorspace,  int quality, const char *path){
 	int ret;
 	if( path == NULL || buffer == NULL )
 		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
@@ -224,11 +264,11 @@ int image_util_encode_jpeg( unsigned char *buffer, int width, int height, image_
 	if( _convert_encode_colorspace_tbl[colorspace] == -1 )
 		return _convert_image_util_error_code(__func__, MM_ERROR_IMAGE_NOT_SUPPORT_FORMAT);
 
-	ret = mm_util_jpeg_encode_to_file((char*)path, buffer, width, height, _convert_encode_colorspace_tbl[colorspace], quality);
+	ret = mm_util_jpeg_encode_to_file(path, buffer, width, height, _convert_encode_colorspace_tbl[colorspace], quality);
 	return _convert_image_util_error_code(__func__, ret);	
 }
 
-int image_util_encode_jpeg_to_memory(unsigned char *image_buffer, int width, int height, image_util_colorspace_e colorspace, int quality,  unsigned char** jpeg_buffer, unsigned int *jpeg_size){
+int image_util_encode_jpeg_to_memory( const unsigned char *image_buffer, int width, int height, image_util_colorspace_e colorspace, int quality,  unsigned char** jpeg_buffer, unsigned int *jpeg_size){
 	int ret;
 	int isize;
 	if( jpeg_buffer == NULL || image_buffer == NULL || jpeg_size == NULL )

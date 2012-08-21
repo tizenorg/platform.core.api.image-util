@@ -58,13 +58,13 @@ typedef enum
  */
 typedef enum
 {
-	IMAGE_UTIL_COLORSPACE_YUV420, 			/**< YUV420 */
-	IMAGE_UTIL_COLORSPACE_YUV422, 			/**< YUV422 */
-	IMAGE_UTIL_COLORSPACE_I420, 				/**< I420 */
-	IMAGE_UTIL_COLORSPACE_NV12, 				/**< NV12 */
+	IMAGE_UTIL_COLORSPACE_YV12, 				/**< YV12 - YCrCb planar format */
+	IMAGE_UTIL_COLORSPACE_YUV422, 			/**< YUV422 - planer */
+	IMAGE_UTIL_COLORSPACE_I420, 				/**< I420 - planer */
+	IMAGE_UTIL_COLORSPACE_NV12, 				/**< NV12- planer */
 
-	IMAGE_UTIL_COLORSPACE_UYVY, 				/**< UYVY */
-	IMAGE_UTIL_COLORSPACE_YUYV, 				/**< YUYV */
+	IMAGE_UTIL_COLORSPACE_UYVY, 				/**< UYVY - packed */
+	IMAGE_UTIL_COLORSPACE_YUYV, 				/**< YUYV - packed */
 
 	IMAGE_UTIL_COLORSPACE_RGB565, 			/**< RGB565, high-byte is Blue */
 	IMAGE_UTIL_COLORSPACE_RGB888, 			/**< RGB888, high-byte is Blue */
@@ -124,7 +124,7 @@ typedef bool (*image_util_supported_jpeg_colorspace_cb)( image_util_colorspace_e
  * @see	image_util_encode_jpeg()
  * @see	image_util_encode_jpeg_to_memory()
  * @see	image_util_decode_jpeg()
- * @see	image_util_decode_jpeg_to_memory() 
+ * @see	image_util_decode_jpeg_from_memory() 
  */
 int image_util_foreach_supported_jpeg_colorspace(image_util_supported_jpeg_colorspace_cb callback, void * user_data);
 
@@ -133,7 +133,7 @@ int image_util_foreach_supported_jpeg_colorspace(image_util_supported_jpeg_color
  *
  * @remarks To get @a dest buffer size uses image_util_calculate_buffer_size() 
  *
- * @param[out]	dest    The image buffer for result. Must be allocated by you
+ * @param[in/out]	dest    The image buffer for result. Must be allocated by you
  * @param[in]	dest_colorspace	The colorspace to be converted
  * @param[in]	src	The source image buffer
  * @param[in]	width	The width of source image 
@@ -146,7 +146,7 @@ int image_util_foreach_supported_jpeg_colorspace(image_util_supported_jpeg_color
  * 
  * @see image_util_calculate_buffer_size()
  */
-int image_util_convert_colorspace( unsigned char * dest , image_util_colorspace_e dest_colorspace , unsigned char * src ,  int width, int height, image_util_colorspace_e src_colorspace);
+int image_util_convert_colorspace( unsigned char * dest , image_util_colorspace_e dest_colorspace , const unsigned char * src ,  int width, int height, image_util_colorspace_e src_colorspace);
 
 /**
  * @brief Calculates the size of image buffer for the specified resolution and colorspace
@@ -166,18 +166,74 @@ int image_util_convert_colorspace( unsigned char * dest , image_util_colorspace_
 int image_util_calculate_buffer_size(int width , int height, image_util_colorspace_e colorspace  , unsigned int *size);
 
 /**
- * @brief Transforms the image to with the specified destination width and height and angle in degrees.
+ * @brief Resize the image to with the specified destination width and height
  *
- * @remarks Because image processing constraints, the destination image size can be adjusted.\n
+ * @remarks Because padding of YUV format, the destination image size can be adjusted.\n
+ *
+ * @param[in/out]	dest	The image buffer for result. Must be allocated by you
+ * @param[in/out]	dest_width	The image width to resize, and resized width
+ * @param[in/out]	dest_height	The image height to resize, and resized height
+ * @param[in]	src				The image buffer for origin image
+ * @param[in]	src_width		The origin image width
+ * @param[in]	src_height		The origin image height
+ * @param[in]	colorspace		The image colorspace
+ *
+ * @return	  0 on success, otherwise a negative error value.
+ * @retval    #IMAGE_UTIL_ERROR_NONE Successful
+ * @retval    #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval	 #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+ *
+ * @see image_util_calculate_buffer_size()
+ */
+int image_util_resize(unsigned char * dest, int *dest_width , int *dest_height, const unsigned char * src, int src_width, int src_height , image_util_colorspace_e colorspace);
+
+/**
+ * @brief Rotate the image to with the specified angle in degrees.
+ *
+ * @remarks Because padding of YUV format, the destination image size can be adjusted.\n
  *  Rotations are supported only in these colorspaces\n
- * #IMAGE_UTIL_COLORSPACE_YUV420 \n
+ * #IMAGE_UTIL_COLORSPACE_YV12 \n
  * #IMAGE_UTIL_COLORSPACE_I420 \n
  * #IMAGE_UTIL_COLORSPACE_NV12 \n
  * #IMAGE_UTIL_COLORSPACE_RGB888 \n
- * @param[out]	dest	The image buffer for result. Must be allocated by you
- * @param[in/out]	dest_width	The image width to resize, and changed width
- * @param[in/out]	dest_height	The image height to resize, and changed height
+ *
+ * @param[in/out]	dest	The image buffer for result. Must be allocated by you
+ * @param[out]	dest_width The rotated image width
+ * @param[out]	dest_height The rotated image height
  * @param[in]	dest_rotation	The angle to rotate
+ * @param[in]	src				The image buffer for origin image
+ * @param[in]	src_width		The origin image width
+ * @param[in]	src_height		The origin image height
+ * @param[in]	colorspace		The image colorspace
+ *
+ * @return	  0 on success, otherwise a negative error value.
+ * @retval    #IMAGE_UTIL_ERROR_NONE Successful
+ * @retval    #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval	 #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+ *
+ * @see image_util_calculate_buffer_size()
+ */
+int image_util_rotate(unsigned char * dest, int *dest_width, int *dest_height, image_util_rotation_e dest_rotation, const unsigned char * src, int src_width, int src_height, image_util_colorspace_e colorspace);
+
+/**
+ * @brief Crop the image to with the specified point and dimension
+ *
+ * @remarks Because padding of YUV format, the destination image size can be adjusted.\n
+ *  Crop is supported only in these colorspaces\n
+ * #IMAGE_UTIL_COLORSPACE_YV12 \n
+ * #IMAGE_UTIL_COLORSPACE_I420 \n
+ * #IMAGE_UTIL_COLORSPACE_RGB888 \n
+ * #IMAGE_UTIL_COLORSPACE_RGB565 \n
+ * #IMAGE_UTIL_COLORSPACE_ARGB8888\n
+ * #IMAGE_UTIL_COLORSPACE_BGRA8888\n
+ * #IMAGE_UTIL_COLORSPACE_RGBA8888\n
+ * #IMAGE_UTIL_COLORSPACE_BGRX8888\n
+ *
+ * @param[in/out]	dest	The image buffer for result. Must be allocated by you
+ * @param[in]	x The starting x-axis of crop
+ * @param[in]	y The starting y-axis of crop
+ * @param[in/out]	width  The image width to crop, and cropped width
+ * @param[in/out]	height  The image height to crop, and cropped height
  * @param[in]	src				The image buffer for origin image
  * @param[in]	src_width		The origin image width
  * @param[in]	src_height		The origin image height 
@@ -188,9 +244,10 @@ int image_util_calculate_buffer_size(int width , int height, image_util_colorspa
  * @retval    #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval	 #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
  *
- * @see image_util_calculated_buffer_size()
+ * @see image_util_calculate_buffer_size()
  */
-int image_util_transform( unsigned char * dest , int *dest_width , int *dest_height , image_util_rotation_e dest_rotation , unsigned char * src , int src_width, int src_height , image_util_colorspace_e colorspace);
+int image_util_crop(unsigned char * dest, int x , int y, int* width, int *height, const unsigned char *src, int src_width, int src_height, image_util_colorspace_e colorspace);
+
 
 
 
@@ -243,7 +300,7 @@ int image_util_decode_jpeg( const char *path , image_util_colorspace_e colorspac
  * @see	image_util_decode_jpeg()
  * @see	image_util_foreach_supported_jpeg_colorspace()  
  */
-int image_util_decode_jpeg_from_memory( unsigned char * jpeg_buffer , int jpeg_size , image_util_colorspace_e colorspace, unsigned char ** image_buffer , int *width , int *height , unsigned int *size);
+int image_util_decode_jpeg_from_memory( const unsigned char * jpeg_buffer , int jpeg_size , image_util_colorspace_e colorspace, unsigned char ** image_buffer , int *width , int *height , unsigned int *size);
 
 /**
  * @brief Encodes image to the jpeg image
@@ -266,7 +323,7 @@ int image_util_decode_jpeg_from_memory( unsigned char * jpeg_buffer , int jpeg_s
  * @see image_util_foreach_supported_jpeg_colorspace() 
  * @see image_util_encode_jpeg_to_memory()
  */
-int image_util_encode_jpeg( unsigned char *buffer, int width, int height, image_util_colorspace_e colorspace,  int quality, const char *path);
+int image_util_encode_jpeg( const unsigned char *buffer, int width, int height, image_util_colorspace_e colorspace,  int quality, const char *path);
 
 /**
  * @brief Encodes image to the jpeg image
@@ -292,7 +349,7 @@ int image_util_encode_jpeg( unsigned char *buffer, int width, int height, image_
  * @see image_util_foreach_supported_jpeg_colorspace()
  * @see image_util_encode_jpeg()
  */
-int image_util_encode_jpeg_to_memory(unsigned char *image_buffer, int width, int height, image_util_colorspace_e colorspace, int quality,  unsigned char** jpeg_buffer, unsigned int *jpeg_size);
+int image_util_encode_jpeg_to_memory(const unsigned char *image_buffer, int width, int height, image_util_colorspace_e colorspace, int quality,  unsigned char** jpeg_buffer, unsigned int *jpeg_size);
 
 
 
