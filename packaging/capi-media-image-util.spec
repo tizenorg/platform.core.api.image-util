@@ -2,8 +2,8 @@ Name:       capi-media-image-util
 Summary:    A Image Utility library in Tizen Native API
 Version:    0.1.0
 Release:    21
-Group:      TO_BE_FILLED
-License:    Apache License, Version 2.0
+Group:      Multimedia/API
+License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.gz
 BuildRequires:  pkgconfig(dlog)
 BuildRequires:  pkgconfig(mm-common)
@@ -19,8 +19,8 @@ A Image Utility library in Tizen Native API
 
 
 %package devel 
-Summary:    A Image Utility library in Tizen Native API (Developement)
-Group:      TO_BE_FILLED 
+Summary:    A Image Utility library in Tizen Native API (Development)
+Group:      Multimedia/Development
 Requires:   %{name} = %{version}-%{release}
 Requires:  pkgconfig(dlog)
 Requires:  pkgconfig(mm-common)
@@ -29,7 +29,7 @@ Requires:  pkgconfig(mmutil-imgp)
 Requires:  pkgconfig(capi-base-common)
 
 %description devel
-A Image Utility library in Tizen Native API (Developement)
+A Image Utility library in Tizen Native API (Development)
 
 %prep
 %setup -q
@@ -40,20 +40,17 @@ MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
 make %{?jobs:-j%jobs}
 
 %install
-rm -rf %{buildroot}
-mkdir -p %{buildroot}/usr/share/license
-cp LICENSE.APLv2.0 %{buildroot}/usr/share/license/%{name}
 
 %make_install
 
-%post
+%post -p /sbin/ldconfig
 
-%postun
+%postun -p /sbin/ldconfig
 
 
 %files
+%license LICENSE.APLv2.0
 %manifest capi-media-image-util.manifest
-%{_datadir}/license/%{name}
 %{_libdir}/lib*.so.*
 
 %files devel 
