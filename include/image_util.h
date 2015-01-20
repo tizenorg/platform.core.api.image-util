@@ -11,7 +11,7 @@
 * distributed under the License is distributed on an "AS IS" BASIS,
 * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 * See the License for the specific language governing permissions and
-* limitations under the License. 
+* limitations under the License.
 */
 
 
@@ -21,6 +21,7 @@
 #define __TIZEN_MEDIA_IMAGE_UTIL_H__
 
 #include <tizen.h>
+#include <media_packet.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -39,43 +40,45 @@ extern "C"
  * @{
  */
 
-
-typedef enum
-{
-    IMAGE_UTIL_ERROR_NONE =              TIZEN_ERROR_NONE,													/**< Successful */
-    IMAGE_UTIL_ERROR_INVALID_PARAMETER = TIZEN_ERROR_INVALID_PARAMETER,  	/**< Invalid parameter */
-    IMAGE_UTIL_ERROR_OUT_OF_MEMORY =     TIZEN_ERROR_OUT_OF_MEMORY,      			/**< Out of memory */
-    IMAGE_UTIL_ERROR_NO_SUCH_FILE  = TIZEN_ERROR_NO_SUCH_FILE, 							/**< No such file */
-    IMAGE_UTIL_ERROR_INVALID_OPERATION = TIZEN_ERROR_INVALID_OPERATION,  		/**< Internal error */
-    IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT = TIZEN_ERROR_NOT_SUPPORT_API /**< Not supported format */
-} image_util_error_e;
-
-
-
-
 /**
- * @brief Enumerations of colorspace
+ * @brief Enumeration for error.
  */
 typedef enum
 {
-	IMAGE_UTIL_COLORSPACE_YV12, 				/**< YV12 - YCrCb planar format */
-	IMAGE_UTIL_COLORSPACE_YUV422, 			/**< YUV422 - planer */
-	IMAGE_UTIL_COLORSPACE_I420, 				/**< I420 - planer */
-	IMAGE_UTIL_COLORSPACE_NV12, 				/**< NV12- planer */
+	IMAGE_UTIL_ERROR_NONE =              TIZEN_ERROR_NONE,                /**< Successful */
+	IMAGE_UTIL_ERROR_INVALID_PARAMETER = TIZEN_ERROR_INVALID_PARAMETER,   /**< Invalid parameter */
+	IMAGE_UTIL_ERROR_OUT_OF_MEMORY =     TIZEN_ERROR_OUT_OF_MEMORY,       /**< Out of memory */
+	IMAGE_UTIL_ERROR_NO_SUCH_FILE  = TIZEN_ERROR_NO_SUCH_FILE,            /**< No such file */
+	IMAGE_UTIL_ERROR_INVALID_OPERATION = TIZEN_ERROR_INVALID_OPERATION,   /**< Internal error */
+	IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT = TIZEN_ERROR_IMAGE_UTIL | 0x01,   /**< Not supported format */
+	IMAGE_UTIL_ERROR_PERMISSION_DENIED = TIZEN_ERROR_PERMISSION_DENIED,   /**< Permission denied  */
+	IMAGE_UTIL_ERROR_NOT_SUPPORTED = TIZEN_ERROR_NOT_SUPPORTED          /**< Not supported */
+} image_util_error_e;
 
-	IMAGE_UTIL_COLORSPACE_UYVY, 				/**< UYVY - packed */
-	IMAGE_UTIL_COLORSPACE_YUYV, 				/**< YUYV - packed */
+/**
+ * @brief Enumeration for colorspace.
+ */
+typedef enum
+{
+        IMAGE_UTIL_COLORSPACE_YV12,     /**< YV12 - YCrCb planar format */
+        IMAGE_UTIL_COLORSPACE_YUV422,   /**< YUV422 - planar */
+        IMAGE_UTIL_COLORSPACE_I420,     /**< YUV420 - planar */
+        IMAGE_UTIL_COLORSPACE_NV12,     /**< NV12- planar */
 
-	IMAGE_UTIL_COLORSPACE_RGB565, 			/**< RGB565, high-byte is Blue */
-	IMAGE_UTIL_COLORSPACE_RGB888, 			/**< RGB888, high-byte is Blue */
-	IMAGE_UTIL_COLORSPACE_ARGB8888, 	/**< ARGB8888, high-byte is Blue */
-	
-	IMAGE_UTIL_COLORSPACE_BGRA8888, 	/**< BGRA8888, high-byte is Alpha */
-	IMAGE_UTIL_COLORSPACE_RGBA8888, 	/**< RGBA8888, high-byte is Alpha */
-	IMAGE_UTIL_COLORSPACE_BGRX8888, 		/**< BGRX8888, high-byte is X */
-	
-}image_util_colorspace_e;
+        IMAGE_UTIL_COLORSPACE_UYVY,     /**< UYVY - packed */
+        IMAGE_UTIL_COLORSPACE_YUYV,     /**< YUYV - packed */
 
+        IMAGE_UTIL_COLORSPACE_RGB565,   /**< RGB565, high-byte is Blue */
+        IMAGE_UTIL_COLORSPACE_RGB888,   /**< RGB888, high-byte is Blue */
+        IMAGE_UTIL_COLORSPACE_ARGB8888, /**< ARGB8888, high-byte is Blue */
+
+        IMAGE_UTIL_COLORSPACE_BGRA8888, /**< BGRA8888, high-byte is Alpha */
+        IMAGE_UTIL_COLORSPACE_RGBA8888, /**< RGBA8888, high-byte is Alpha */
+        IMAGE_UTIL_COLORSPACE_BGRX8888, /**< BGRX8888, high-byte is X */
+        IMAGE_UTIL_COLORSPACE_NV21,     /**< NV12- planar */
+        IMAGE_UTIL_COLORSPACE_NV16,     /**< NV16- planar */
+        IMAGE_UTIL_COLORSPACE_NV61,     /**< NV61- planar */
+} image_util_colorspace_e;
 
 /**
  * @brief Enumerations of rotation
@@ -83,16 +86,320 @@ typedef enum
 typedef enum
 {
 	IMAGE_UTIL_ROTATION_NONE = 0, 			/**< None */
-    IMAGE_UTIL_ROTATION_90 = 1,              	/**< Rotation 90 degree */
-    IMAGE_UTIL_ROTATION_180,             		/**< Rotation 180 degree */
-    IMAGE_UTIL_ROTATION_270,             		/**< Rotation 270 degree */
-    IMAGE_UTIL_ROTATION_FLIP_HORZ,       /**< Flip horizontal */
-    IMAGE_UTIL_ROTATION_FLIP_VERT,       /**< Flip vertical */
+	IMAGE_UTIL_ROTATION_90 = 1,              	/**< Rotation 90 degree */
+	IMAGE_UTIL_ROTATION_180,             		/**< Rotation 180 degree */
+	IMAGE_UTIL_ROTATION_270,             		/**< Rotation 270 degree */
+	IMAGE_UTIL_ROTATION_FLIP_HORZ,       /**< Flip horizontal */
+	IMAGE_UTIL_ROTATION_FLIP_VERT,       /**< Flip vertical */
 } image_util_rotation_e;
 
 
+/**
+* @ingroup CAPI_MEDIA_IMAGE_UTIL_MODULE
+* @brief Image util handle.
+*/
+typedef struct transformation_s *transformation_h;
 
 
+/**
+* @ingroup CAPI_MEDIA_IMAGE_UTIL_MODULE
+* @brief Called when transform is finished just before returning the output.
+*
+* @param[in] error_code The error code of image util transfrom
+* @param[in,out] dst The result buffer of image util transform
+* @param[in] user_data The user data passed from the callback registration function
+* @pre image_util_transform_run() will invoke this function.
+*/
+typedef void (*image_util_transform_completed_cb)(media_packet_h *dst, int error_code, void *user_data);
+
+
+
+/**
+ * @addtogroup CAPI_MEDIA_IMAGE_UTIL_MODULE
+ * @{
+ */
+
+/**
+* @brief Creates a handle to image util transform.
+* @since_tizen 2.3
+*
+* @details This function creates a handle to image util transform.
+*
+* @remarks You must release the @a image util handle using image_util_transform_destroy().
+*
+* @param[out] handle A handle to image util transform
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_OUT_OF_MEMORY Out of memory
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+*
+* @see image_util_transform_destroy()
+*
+*/
+int image_util_transform_create(transformation_h *handle);
+
+/**
+* @brief Sets the image util's accurate mode.
+*
+* @details This function set if you use hardware accerlation or not.
+*
+* @remarks The value returned will be IMAGE_UTIL_ERROR_NOT_SUPPORTED, if H/W acceleration doesn't support on the device.
+*
+* @param[in] handle The handle to image util
+* @param [in] mode Set @c true, user can use the hardware acceleration\n
+*                               otherwise set @c false if user can only software image processing
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+* @retval #IMAGE_UTIL_ERROR_NOT_SUPPORTED The application does not have the hardware acceleration
+*
+* @pre image_util_transform_create().
+*
+* @see image_util_transform_create()
+* @see image_util_transform_destroy()
+*/
+int image_util_transform_set_hardware_acceleration(transformation_h handle, bool mode);
+
+/**
+* @brief Sets the information of the converting
+* @since_tizen 2.3
+*
+* @param[in] handle The handle to image util transform
+* @param[in] colorspace The colorspace of the image buffer
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+* @retval #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Not supported format
+*
+* @pre image_util_transform_create().
+*
+* @see image_util_transform_create()
+* @see image_util_transform_run()
+* @see image_util_transform_destroy()
+*/
+int image_util_transform_set_colorspace(transformation_h handle, image_util_colorspace_e colorspace);
+
+/**
+* @brief Sets the information of the resizing
+* @since_tizen 2.3
+*
+* @param[in] handle The handle to image util transform
+* @param[in] width The width of image buffer
+* @param[in] height The height of image buffer
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+*
+* @pre image_util_transform_create().
+*
+* @see image_util_transform_create()
+* @see image_util_transform_run()
+* @see image_util_transform_destroy()
+*/
+int image_util_transform_set_resolution(transformation_h handle, unsigned int width, unsigned int height);
+
+/**
+* @brief Sets the information of the rotating
+* @since_tizen 2.3
+*
+* @param[in] handle The handle to image util transform
+* @param[in] rotation The rotation value of image buffer
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+*
+* @pre image_util_transform_create().
+*
+* @see image_util_transform_create()
+* @see image_util_transform_run()
+* @see image_util_transform_destroy()
+*/
+int image_util_transform_set_rotation(transformation_h handle, image_util_rotation_e rotation);
+
+/**
+* @brief Sets the information of the cropping
+* @since_tizen 2.3
+*
+* @param[in] handle The handle to image util transform
+* @param[in] start_x The start x position of cropped image buffer
+* @param[in] start_y The start y position of cropped image buffer
+* @param[in] end_x The end x position of cropped image buffer
+* @param[in] end_y The end y position of cropped image buffer
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+*
+* @pre image_util_transform_create().
+*
+* @see image_util_transform_create()
+* @see image_util_transform_run()
+* @see image_util_transform_destroy()
+*/
+int image_util_transform_set_crop_area(transformation_h handle, unsigned int start_x, unsigned int start_y, unsigned int end_x, unsigned int end_y);
+
+/**
+* @brief Gets the colorspace of the image buffer
+* @since_tizen 2.3
+*
+* @param[in] handle The handle to image util transform
+* @param[in,out] colorspace The colorspace of the image buffer
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Not supported format
+*
+* @pre image_util_transform_create().\n
+            image_util_transform_set_crop_area().
+*
+* @see image_util_transform_create()
+* @see image_util_transform_destroy()
+*/
+int image_util_transform_get_colorspace(transformation_h handle, image_util_colorspace_e *colorspace);
+
+/**
+* @brief Gets the resolution of the image buffer
+* @since_tizen 2.3
+*
+* @param[in] handle The handle to image util transform
+* @param[in,out] width The width of source image buffer
+* @param[in,out] height The height of source image buffer
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+*
+* @pre image_util_transform_create().\n
+            image_util_transform_set_resolution().
+*
+* @see image_util_transform_create()
+* @see image_util_transform_destroy()
+*/
+int image_util_transform_get_resolution(transformation_h handle, unsigned int *width , unsigned int *height);
+
+/**
+* @brief Gets the information of the rotating
+* @since_tizen 2.3
+*
+* @param[in] handle The handle to image util transform
+* @param[in,out] rotation The rotation value of image buffer
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+*
+* @pre image_util_transform_create().\n
+            image_util_transform_set_rotation().
+*
+* @see image_util_transform_create()
+* @see image_util_transform_destroy()
+*/
+int image_util_transform_get_rotation(transformation_h handle, image_util_rotation_e *rotation);
+
+/**
+* @brief Gets the information of the cropping
+* @since_tizen 2.3
+*
+* @param[in] handle The handle to image util transform
+* @param[in,out] start_x The start x position of cropped source image buffer
+* @param[in,out] start_y The start y position of cropped source image buffer
+* @param[in,out] end_x The end x position of cropped source image buffer
+* @param[in,out] end_y The end y position of cropped source image buffer
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+*
+* @pre image_util_transform_create().\n
+            image_util_transform_set_crop_area().
+*
+* @see image_util_transform_create()
+* @see image_util_transform_destroy()
+*/
+int image_util_transform_get_crop_area(transformation_h handle, unsigned int *start_x, unsigned int *start_y, unsigned int *end_x, unsigned int *end_y);
+
+/**
+* @brief Transform the image for given image util handle.
+* @since_tizen 2.3
+*
+*@remarks If H/W acceleration is not set, transformation is done via S/W acceleration.
+*
+* @details The function execute asynchronously, which contains complete callback
+*
+* @param[in] handle The handle of transform
+* @param[in] src The handle to image util transform
+* @param[in] callback The callback function to be invoked
+* @param[in] user_data The user data to be passed to the callback function
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+*
+* @see image_util_transform_create()
+* @see image_util_transform_set_hardware_acceleration
+* @see image_util_transform_destroy()
+*/
+int image_util_transform_run(transformation_h handle, media_packet_h src, image_util_transform_completed_cb callback, void *user_data);
+
+/**
+* @brief Destroys a handle to image util.
+* @since_tizen 2.3
+*
+* @details The function frees all resources related to the image util handle. The image util
+*               handle no longer can be used to perform any operation. A new image util handle
+*               has to be created before the next usage.
+*
+* @param[in] handle The handle to image util transform
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+*
+* @see image_util_transform_create()
+*
+*/
+int image_util_transform_destroy(transformation_h handle);
 /**
  * @brief	Called once for each supported JPEG encode/decode colorspace.
  *
