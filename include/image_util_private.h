@@ -17,6 +17,7 @@
 #ifndef __TIZEN_MEDIA_IMAGE_UTIL_PRIVATE_H__
 #define __TIZEN_MEDIA_IMAGE_UTIL_PRIVATE_H__
 
+#include <mm_types.h>
 
 #ifdef __cplusplus
 extern "C"

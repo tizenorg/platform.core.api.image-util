@@ -68,6 +68,12 @@ static int _convert_encode_colorspace_tbl[] = {
 };
 
 
+static int _convert_decode_scale_tbl[] = {
+	MM_UTIL_JPEG_DECODE_DOWNSCALE_1_1,
+	MM_UTIL_JPEG_DECODE_DOWNSCALE_1_2,
+	MM_UTIL_JPEG_DECODE_DOWNSCALE_1_4,
+	MM_UTIL_JPEG_DECODE_DOWNSCALE_1_8,
+};
 
 static int _convert_image_util_error_code(const char *func, int code){
 	int ret = IMAGE_UTIL_ERROR_INVALID_OPERATION;
@@ -79,6 +85,7 @@ static int _convert_image_util_error_code(const char *func, int code){
 			errorstr = "ERROR_NONE";
 			break;
 		case MM_ERROR_IMAGE_FILEOPEN :
+		case IMAGE_UTIL_ERROR_NO_SUCH_FILE :
 			ret = IMAGE_UTIL_ERROR_NO_SUCH_FILE;
 			errorstr = "NO_SUCH_FILE";
 			break;
@@ -696,12 +703,14 @@ int image_util_decode_jpeg( const char *path , image_util_colorspace_e colorspac
 
 	if( path == NULL || image_buffer == NULL || size == NULL)
 		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+	if(strlen (path) == 0)
+		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_NO_SUCH_FILE);
 	if( colorspace < 0 || colorspace >= sizeof(_convert_colorspace_tbl)/sizeof(int))
 		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
 	if( _convert_encode_colorspace_tbl[colorspace] == -1 )
 		return _convert_image_util_error_code(__func__, MM_ERROR_IMAGE_NOT_SUPPORT_FORMAT);
 
-	mm_util_jpeg_yuv_data decoded;
+	mm_util_jpeg_yuv_data decoded = { 0, 0, 0, NULL};
 
 	ret = mm_util_decode_from_jpeg_file(&decoded, (char*)path, _convert_encode_colorspace_tbl[colorspace]);
 	if( ret == 0 ){
@@ -730,6 +739,66 @@ int image_util_decode_jpeg_from_memory( const unsigned char * jpeg_buffer , int 
 	mm_util_jpeg_yuv_data decoded;
 
 	ret = mm_util_decode_from_jpeg_memory(&decoded , jpeg_buffer, jpeg_size, _convert_encode_colorspace_tbl[colorspace] );
+
+	if( ret == 0 ){
+		*image_buffer = decoded.data;
+		if(width)
+			*width = decoded.width;
+		if(height)
+			*height = decoded.height;
+		if(size)
+			*size = decoded.size;
+	}
+
+	return _convert_image_util_error_code(__func__, ret);
+}
+
+int image_util_decode_jpeg_with_downscale( const char *path, image_util_colorspace_e colorspace, image_util_decode_scale_e downscale, unsigned char ** image_buffer, int *width, int *height, unsigned int *size)
+{
+	int ret = IMAGE_UTIL_ERROR_NONE;
+
+	if( path == NULL || image_buffer == NULL || size == NULL)
+		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+	if(strlen (path) == 0)
+		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_NO_SUCH_FILE);
+	if( colorspace < 0 || colorspace >= sizeof(_convert_colorspace_tbl)/sizeof(int))
+		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+	if( _convert_encode_colorspace_tbl[colorspace] == -1 )
+		return _convert_image_util_error_code(__func__, MM_ERROR_IMAGE_NOT_SUPPORT_FORMAT);
+	if( downscale < 0 || downscale >= sizeof(_convert_decode_scale_tbl)/sizeof(int))
+		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+
+	mm_util_jpeg_yuv_data decoded = { 0, 0, 0, NULL};
+
+	ret = mm_util_decode_from_jpeg_file_with_downscale(&decoded, (char*)path, _convert_encode_colorspace_tbl[colorspace], _convert_decode_scale_tbl[downscale]);
+	if( ret == 0 ){
+		*image_buffer = decoded.data;
+		if(width)
+			*width = decoded.width;
+		if(height)
+			*height = decoded.height;
+		if(size)
+			*size = decoded.size;
+	}
+	return _convert_image_util_error_code(__func__, ret);
+}
+
+int image_util_decode_jpeg_from_memory_with_downscale( const unsigned char * jpeg_buffer, int jpeg_size, image_util_colorspace_e colorspace, image_util_decode_scale_e downscale, unsigned char ** image_buffer, int *width, int *height, unsigned int *size)
+{
+	int ret = IMAGE_UTIL_ERROR_NONE;
+
+	if( jpeg_buffer == NULL || image_buffer == NULL || size == NULL)
+		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+	if( colorspace < 0 ||colorspace >= sizeof(_convert_colorspace_tbl)/sizeof(int))
+		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+	if( _convert_encode_colorspace_tbl[colorspace] == -1 )
+		return _convert_image_util_error_code(__func__, MM_ERROR_IMAGE_NOT_SUPPORT_FORMAT);
+	if( downscale < 0 || downscale >= sizeof(_convert_decode_scale_tbl)/sizeof(int))
+		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+
+	mm_util_jpeg_yuv_data decoded;
+
+	ret = mm_util_decode_from_jpeg_memory_with_downscale(&decoded, jpeg_buffer, jpeg_size, _convert_encode_colorspace_tbl[colorspace], _convert_decode_scale_tbl[downscale]);
 
 	if( ret == 0 ){
 		*image_buffer = decoded.data;
@@ -779,4 +848,3 @@ int image_util_encode_jpeg_to_memory( const unsigned char *image_buffer, int wid
 
 	return _convert_image_util_error_code(__func__, ret);
 }
-
