@@ -14,14 +14,10 @@
 * limitations under the License.
 */
 
-
-
-
 #ifndef __TIZEN_MEDIA_IMAGE_UTIL_H__
 #define __TIZEN_MEDIA_IMAGE_UTIL_H__
 
 #include <tizen.h>
-#include <media_packet.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -32,7 +28,7 @@ extern "C"
 
 /**
  * @file image_util.h
- * @brief This file contains the image util API
+ * @brief This file contains the image util API.
  */
 
 /**
@@ -42,6 +38,7 @@ extern "C"
 
 /**
  * @brief Enumeration for error.
+ * @since_tizen 2.3
  */
 typedef enum
 {
@@ -57,6 +54,7 @@ typedef enum
 
 /**
  * @brief Enumeration for colorspace.
+ * @since_tizen 2.3
  */
 typedef enum
 {
@@ -97,6 +95,7 @@ typedef enum
 /**
 * @ingroup CAPI_MEDIA_IMAGE_UTIL_MODULE
 * @brief Image util handle.
+* @since_tizen 2.3
 */
 typedef struct transformation_s *transformation_h;
 
@@ -104,6 +103,7 @@ typedef struct transformation_s *transformation_h;
 /**
 * @ingroup CAPI_MEDIA_IMAGE_UTIL_MODULE
 * @brief Called when transform is finished just before returning the output.
+* @since_tizen 2.3
 *
 * @param[in] error_code The error code of image util transfrom
 * @param[in,out] dst The result buffer of image util transform
@@ -400,264 +400,332 @@ int image_util_transform_run(transformation_h handle, media_packet_h src, image_
 *
 */
 int image_util_transform_destroy(transformation_h handle);
+
 /**
- * @brief	Called once for each supported JPEG encode/decode colorspace.
- *
- * @param[in] colorspace         The colorspace
- * @param[in] user_data     The user data passed from the foreach function
- *
- * @return	@c true to continue with the next iteration of the loop, \n @c false to break out of the loop.
- * @pre		image_util_foreach_supported_jpeg_colorspace() will invokes this callback.
- *
- * @see	image_util_foreach_supported_jpeg_colorspace()
- * @see	image_util_encode_jpeg()
- * @see	image_util_encode_jpeg_to_memory() 
- * @see	image_util_decode_jpeg()
- * @see	image_util_decode_jpeg_from_memory()
- */
+* @brief Called once for each supported JPEG encode/decode colorspace.
+* @since_tizen 2.3
+*
+* @param[in] colorspace The colorspace
+* @param[in] user_data The user data passed from the foreach function
+*
+* @return @c true to continue with the next iteration of the loop, \n
+*         otherwise @c false to break out of the loop
+*
+* @pre image_util_foreach_supported_jpeg_colorspace() invokes this callback.
+*
+* @see image_util_foreach_supported_jpeg_colorspace()
+* @see image_util_encode_jpeg()
+* @see image_util_encode_jpeg_to_memory()
+* @see image_util_decode_jpeg()
+* @see image_util_decode_jpeg_from_memory()
+*/
 typedef bool (*image_util_supported_jpeg_colorspace_cb)( image_util_colorspace_e colorspace , void * user_data);
 
 /**
- * @brief Retrieves all supported JPEG encoding/decoding colorspace by invoking a callback function once for each one.
- *
- * @param[in] 	callback    The callback function to invoke
- * @param[in] 	user_data	The user data to be passed to the callback function
- * @return	  0 on success, otherwise a negative error value.
- * @retval    #IMAGE_UTIL_ERROR_NONE Successful
- * @retval    #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
- * @post	This function invokes image_util_supported_jpeg_colorspace_cb() repeatedly to retrieve each supported jpeg encoding/decoding colorspace
- *
- * @see	image_util_supported_jpeg_colorspace_cb()
- * @see	image_util_encode_jpeg()
- * @see	image_util_encode_jpeg_to_memory()
- * @see	image_util_decode_jpeg()
- * @see	image_util_decode_jpeg_from_memory() 
- */
+* @brief Retrieves all supported JPEG encoding/decoding colorspace by invoking a callback function once for each one.
+* @since_tizen 2.3
+*
+* @param[in] callback The callback function to invoke
+* @param[in] user_data The user data to be passed to the callback function
+* @return 0 on success,
+*         otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+* @post This function invokes image_util_supported_jpeg_colorspace_cb() repeatedly to retrieve each supported JPEG encoding/decoding colorspace.
+*
+* @see image_util_supported_jpeg_colorspace_cb()
+* @see image_util_encode_jpeg()
+* @see image_util_encode_jpeg_to_memory()
+* @see image_util_decode_jpeg()
+* @see image_util_decode_jpeg_from_memory()
+*/
 int image_util_foreach_supported_jpeg_colorspace(image_util_supported_jpeg_colorspace_cb callback, void * user_data);
 
 /**
- * @brief Convert the image's colorspace
- *
- * @remarks To get @a dest buffer size uses image_util_calculate_buffer_size() 
- *
- * @param[in/out]	dest    The image buffer for result. Must be allocated by you
- * @param[in]	dest_colorspace	The colorspace to be converted
- * @param[in]	src	The source image buffer
- * @param[in]	width	The width of source image 
- * @param[in]	height	The height of source image
- * @param[in]	src_colorspace	The colorspace of source image buffer 
- * @return	  0 on success, otherwise a negative error value.
- * @retval    #IMAGE_UTIL_ERROR_NONE Successful
- * @retval    #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
- * @retval	 #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation 
- * 
- * @see image_util_calculate_buffer_size()
- */
-int image_util_convert_colorspace( unsigned char * dest , image_util_colorspace_e dest_colorspace , const unsigned char * src ,  int width, int height, image_util_colorspace_e src_colorspace);
-
-/**
- * @brief Calculates the size of image buffer for the specified resolution and colorspace
- *
- * @param[in]	width	The image width
- * @param[in]	height	The image height
- * @param[in]	colorspace	The image colorspace 
- * @param[out]	size	The Calculated buffer size
- * @return	  0 on success, otherwise a negative error value.
- * @retval    #IMAGE_UTIL_ERROR_NONE Successful
- * @retval    #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
- *
- * @see	image_util_convert_colorspace()
- * @see	image_util_resize()
- * @see	image_util_rotation()
- */
+* @brief Calculates the size of the image buffer for the specified resolution and colorspace.
+* @since_tizen 2.3
+*
+* @param[in] width The image width
+* @param[in] height The image height
+* @param[in] colorspace The image colorspace
+* @param[out] size The Calculated buffer size
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+*
+* @see image_util_transform_run()
+* @see image_util_decode_jpeg()
+* @see image_util_decode_jpeg_from_memory()
+* @see image_util_encode_jpeg()
+* @see image_util_encode_jpeg_to_memory()
+*/
 int image_util_calculate_buffer_size(int width , int height, image_util_colorspace_e colorspace  , unsigned int *size);
 
 /**
- * @brief Resize the image to with the specified destination width and height
- *
- * @remarks Because padding of YUV format, the destination image size can be adjusted.\n
- *
- * @param[in/out]	dest	The image buffer for result. Must be allocated by you
- * @param[in/out]	dest_width	The image width to resize, and resized width
- * @param[in/out]	dest_height	The image height to resize, and resized height
- * @param[in]	src				The image buffer for origin image
- * @param[in]	src_width		The origin image width
- * @param[in]	src_height		The origin image height
- * @param[in]	colorspace		The image colorspace
- *
- * @return	  0 on success, otherwise a negative error value.
- * @retval    #IMAGE_UTIL_ERROR_NONE Successful
- * @retval    #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
- * @retval	 #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
- *
- * @see image_util_calculate_buffer_size()
- */
+* @internal
+* @brief Converts the image's colorspace.
+* @since_tizen 2.3
+*
+* @remarks You must get the @a dest buffer size using image_util_transform_calculate_buffer_size().
+*
+* @param[in,out] dest The image buffer for result \n
+*                     Must be allocated by the user
+* @param[in] dest_colorspace The colorspace to be converted
+* @param[in] src The source image buffer
+* @param[in] width The width of the source image
+* @param[in] height The height of the source image
+* @param[in] src_colorspace The colorspace of the source image buffer
+*
+* @return %c 0 on success
+*            otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+*
+* @see image_util_transform_calculate_buffer_size()
+* @see image_util_transform_create()
+* @see image_util_transform_destroy()
+*/
+int image_util_convert_colorspace( unsigned char * dest , image_util_colorspace_e dest_colorspace , const unsigned char * src ,  int width, int height, image_util_colorspace_e src_colorspace);
+
+/**
+* @internal
+* @brief Resizes the image to the specified destination width and height.
+* @since_tizen 2.3
+*
+* @remarks Because of YUV format padding, the destination image size can be adjusted.
+*
+* @param[in,out] dest The image buffer for result \n
+*                     Must be allocated by the user.
+* @param[in,out] dest_width The image width to resize, and resized width
+* @param[in,out] dest_height The image height to resize, and resized height
+* @param[in] src The image buffer for the original image
+* @param[in] src_width The original image width
+* @param[in] src_height The original image height
+* @param[in] colorspace The image colorspace
+*
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+*
+* @see image_util_transform_calculate_buffer_size()
+*/
 int image_util_resize(unsigned char * dest, int *dest_width , int *dest_height, const unsigned char * src, int src_width, int src_height , image_util_colorspace_e colorspace);
 
 /**
- * @brief Rotate the image to with the specified angle in degrees.
- *
- * @remarks Because padding of YUV format, the destination image size can be adjusted.\n
- *  Rotations are supported only in these colorspaces\n
- * #IMAGE_UTIL_COLORSPACE_YV12 \n
- * #IMAGE_UTIL_COLORSPACE_I420 \n
- * #IMAGE_UTIL_COLORSPACE_NV12 \n
- * #IMAGE_UTIL_COLORSPACE_RGB888 \n
- *
- * @param[in/out]	dest	The image buffer for result. Must be allocated by you
- * @param[out]	dest_width The rotated image width
- * @param[out]	dest_height The rotated image height
- * @param[in]	dest_rotation	The angle to rotate
- * @param[in]	src				The image buffer for origin image
- * @param[in]	src_width		The origin image width
- * @param[in]	src_height		The origin image height
- * @param[in]	colorspace		The image colorspace
- *
- * @return	  0 on success, otherwise a negative error value.
- * @retval    #IMAGE_UTIL_ERROR_NONE Successful
- * @retval    #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
- * @retval	 #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
- *
- * @see image_util_calculate_buffer_size()
- */
+* @internal
+* @brief Rotates the image to the specified angle given in degrees.
+* @since_tizen 2.3
+*
+* @remarks Because of YUV format padding, the destination image size can be adjusted.
+* Rotations are supported only in these color spaces\n
+* #IMAGE_UTIL_COLORSPACE_YV12\n
+* #IMAGE_UTIL_COLORSPACE_I420\n
+* #IMAGE_UTIL_COLORSPACE_NV12\n
+* #IMAGE_UTIL_COLORSPACE_RGB888\n
+* #IMAGE_UTIL_COLORSPACE_RGB565\n
+* #IMAGE_UTIL_COLORSPACE_ARGB8888\n
+* #IMAGE_UTIL_COLORSPACE_BGRA8888\n
+* #IMAGE_UTIL_COLORSPACE_RGBA8888\n
+* #IMAGE_UTIL_COLORSPACE_BGRX8888\n.
+*
+* @param[in,out] dest The image buffer for result \n
+*                     Must be allocated by the user.
+* @param[out] dest_width The rotated image width
+* @param[out] dest_height The rotated image height
+* @param[in] dest_rotation The angle to rotate
+* @param[in] src The image buffer for the original image
+* @param[in] src_width The original image width
+* @param[in] src_height The original image height
+* @param[in] colorspace The image colorspace
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+*
+* @see image_util_transform_calculate_buffer_size()
+*/
 int image_util_rotate(unsigned char * dest, int *dest_width, int *dest_height, image_util_rotation_e dest_rotation, const unsigned char * src, int src_width, int src_height, image_util_colorspace_e colorspace);
 
 /**
- * @brief Crop the image to with the specified point and dimension
- *
- * @remarks Because padding of YUV format, the destination image size can be adjusted.\n
- *  Crop is supported only in these colorspaces\n
- * #IMAGE_UTIL_COLORSPACE_YV12 \n
- * #IMAGE_UTIL_COLORSPACE_I420 \n
- * #IMAGE_UTIL_COLORSPACE_RGB888 \n
- * #IMAGE_UTIL_COLORSPACE_RGB565 \n
- * #IMAGE_UTIL_COLORSPACE_ARGB8888\n
- * #IMAGE_UTIL_COLORSPACE_BGRA8888\n
- * #IMAGE_UTIL_COLORSPACE_RGBA8888\n
- * #IMAGE_UTIL_COLORSPACE_BGRX8888\n
- *
- * @param[in/out]	dest	The image buffer for result. Must be allocated by you
- * @param[in]	x The starting x-axis of crop
- * @param[in]	y The starting y-axis of crop
- * @param[in/out]	width  The image width to crop, and cropped width
- * @param[in/out]	height  The image height to crop, and cropped height
- * @param[in]	src				The image buffer for origin image
- * @param[in]	src_width		The origin image width
- * @param[in]	src_height		The origin image height 
- * @param[in]	colorspace		The image colorspace
- *
- * @return	  0 on success, otherwise a negative error value.
- * @retval    #IMAGE_UTIL_ERROR_NONE Successful
- * @retval    #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
- * @retval	 #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
- *
- * @see image_util_calculate_buffer_size()
- */
+* @internal
+* @brief Crops the image to the specified point and dimension.
+* @since_tizen 2.3
+*
+* @remarks Because of YUV format padding, the destination image size can be adjusted.
+* Crop is supported only in these colorspaces\n
+* #IMAGE_UTIL_COLORSPACE_YV12 \n
+* #IMAGE_UTIL_COLORSPACE_I420 \n
+* #IMAGE_UTIL_COLORSPACE_RGB888 \n
+* #IMAGE_UTIL_COLORSPACE_RGB565 \n
+* #IMAGE_UTIL_COLORSPACE_ARGB8888\n
+* #IMAGE_UTIL_COLORSPACE_BGRA8888\n
+* #IMAGE_UTIL_COLORSPACE_RGBA8888\n
+* #IMAGE_UTIL_COLORSPACE_BGRX8888\n.
+*
+* @param[in,out] dest The image buffer for result. Must be allocated by you
+* @param[in] x The starting x-axis of crop
+* @param[in] y The starting y-axis of crop
+* @param[in/out] width  The image width to crop, and cropped width
+* @param[in/out] height  The image height to crop, and cropped height
+* @param[in] src The image buffer for original image
+* @param[in] src_width The original image width
+* @param[in] src_height The original image height
+* @param[in] colorspace The image colorspace
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+*
+* @see image_util_transform_calculate_buffer_size()
+*/
 int image_util_crop(unsigned char * dest, int x , int y, int* width, int *height, const unsigned char *src, int src_width, int src_height, image_util_colorspace_e colorspace);
 
 
 
 
 /**
- * @brief Decodes jpeg image to the buffer
- *
- * @remarks @a image_buffer must be released with free() by you.
- *
- * @param[in]	path	The image file path
- * @param[in]	colorspace	The decoded image colorspace
- * @param[out]	image_buffer	The image buffer for decoded image
- * @param[out]	width	The image width
- * @param[out]	height	The image height
- * @param[out]	size		The image buffer size
- *
- * @return	  0 on success, otherwise a negative error value.
- * @retval    #IMAGE_UTIL_ERROR_NONE Successful
- * @retval    #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
- * @retval	 #IMAGE_UTIL_ERROR_OUT_OF_MEMORY out of memory 
- * @retval    #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Not supported format
- * @retval	 #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation 
- *
- * @see image_util_supported_jpeg_colorspace_cb() 
- * @see	image_util_decode_jpeg_from_memory()
- * @see	image_util_foreach_supported_jpeg_colorspace() 
- */
+* @brief Decodes the JPEG image to the buffer.
+* @since_tizen 2.3
+*
+* @remarks You must release @a image_buffer using free().\n
+*                 http://tizen.org/privilege/mediastorage is needed if input or output path are relevant to media storage.\n
+*                 http://tizen.org/privilege/externalstorage is needed if input or output path are relevant to external storage.
+*
+* @param[in] path The image file path
+* @param[in] colorspace The decoded image colorspace
+* @param[out] image_buffer The image buffer for the decoded image
+* @param[out] width The image width
+* @param[out] height The image height
+* @param[out] size The image buffer size
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_OUT_OF_MEMORY out of memory
+* @retval #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Format not supported
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+*
+* @see image_util_supported_jpeg_colorspace_cb()
+* @see image_util_decode_jpeg_from_memory()
+* @see image_util_foreach_supported_jpeg_colorspace()
+*/
 int image_util_decode_jpeg( const char *path , image_util_colorspace_e colorspace, unsigned char ** image_buffer , int *width , int *height , unsigned int *size);
 
 /**
- * @brief Decodes jpeg image(on memory) to the buffer
- *
- * @remarks @a image_buffer must be released with free() by you.
- *
- * @param[in]	jpeg_buffer	The jpeg image buffer
- * @param[in]	jpeg_size		The jpeg image buffer size
- * @param[in]	colorspace	The decoded image colorspace
- * @param[out]	image_buffer	The image buffer for decoded image
- * @param[out]	width	The image width
- * @param[out]	height	The image height
- * @param[out]	size		The image buffer size
- *
- * @return	  0 on success, otherwise a negative error value.
- * @retval    #IMAGE_UTIL_ERROR_NONE Successful
- * @retval    #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
- * @retval	 #IMAGE_UTIL_ERROR_OUT_OF_MEMORY out of memory 
- * @retval    #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Not supported format
- * @retval	 #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation 
- *
- * @see image_util_supported_jpeg_colorspace_cb()
- * @see	image_util_decode_jpeg()
- * @see	image_util_foreach_supported_jpeg_colorspace()  
- */
+* @brief Decodes the JPEG image(in memory) to the buffer.
+* @since_tizen 2.3
+*
+* @remarks You must release @a image_buffer using free().
+*
+* @param[in] jpeg_buffer The JPEG image buffer
+* @param[in] jpeg_size The JPEG image buffer size
+* @param[in] colorspace The decoded image colorspace
+* @param[out] image_buffer The image buffer for the decoded image
+* @param[out] width The image width
+* @param[out] height The image height
+* @param[out] size The image buffer size
+*
+* @return @c 0 on success,
+*           otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_OUT_OF_MEMORY out of memory
+* @retval #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Format not supported
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+*
+* @see image_util_supported_jpeg_colorspace_cb()
+* @see image_util_decode_jpeg()
+* @see image_util_foreach_supported_jpeg_colorspace()
+*/
 int image_util_decode_jpeg_from_memory( const unsigned char * jpeg_buffer , int jpeg_size , image_util_colorspace_e colorspace, unsigned char ** image_buffer , int *width , int *height , unsigned int *size);
 
 /**
- * @brief Encodes image to the jpeg image
- *
- * @param[in]	buffer	The origin image buffer
- * @param[in]	width	The origin image width
- * @param[in]	height	The origin image height
- * @param[in]	colorspace	The origin image colorspace
- * @param[in]	quality The quality for JPEG image encoding (1 ~ 100)
- * @param[in]	path	The file path to be created
- *
- * @return	  0 on success, otherwise a negative error value.
- * @retval    #IMAGE_UTIL_ERROR_NONE Successful
- * @retval    #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
- * @retval	 #IMAGE_UTIL_ERROR_NO_SUCH_FILE no such file
- * @retval    #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Not supported format
- * @retval	 #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation 
- *
- * @see image_util_supported_jpeg_colorspace_cb()
- * @see image_util_foreach_supported_jpeg_colorspace() 
- * @see image_util_encode_jpeg_to_memory()
- */
+* @brief Encodes the image to the JPEG image.
+* @since_tizen 2.3
+*
+* @remarks http://tizen.org/privilege/mediastorage is needed if input or output path are relevant to media storage.\n
+*                 http://tizen.org/privilege/externalstorage is needed if input or output path are relevant to external storage.
+*
+* @param[in] buffer The original image buffer
+* @param[in] width The original image width
+* @param[in] height The original image height
+* @param[in] colorspace The original image colorspace
+* @param[in] quality The quality for JPEG image encoding (1 ~ 100)
+* @param[in] path The file path to be created
+*
+* @return 0 on success,
+*           otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_NO_SUCH_FILE No such file
+* @retval #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Format not supported
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+*
+* @see image_util_supported_jpeg_colorspace_cb()
+* @see image_util_foreach_supported_jpeg_colorspace()
+* @see image_util_encode_jpeg_to_memory()
+*/
 int image_util_encode_jpeg( const unsigned char *buffer, int width, int height, image_util_colorspace_e colorspace,  int quality, const char *path);
 
 /**
- * @brief Encodes image to the jpeg image
- *
- * @remarks @a jpeg_buffer must be released with free() by you.
- * 
- * @param[in]	image_buffer	The origin image buffer
- * @param[in]	width	The image width
- * @param[in]	height	The image height
- * @param[in]	colorspace	The origin image colorspace
- * @param[in]	quality The quality for JPEG image encoding (1 ~ 100)
- * @param[out]	jpeg_buffer	The created jpeg image buffer.  The buffer is created by frameworks
- * @param[out]	jpeg_size		The created jpeg image buffer size
- *
- * @return	  0 on success, otherwise a negative error value.
- * @retval    #IMAGE_UTIL_ERROR_NONE Successful
- * @retval    #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
- * @retval	 #IMAGE_UTIL_ERROR_OUT_OF_MEMORY out of memory
- * @retval    #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Not supported format
- * @retval	 #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation 
- *
- * @see image_util_supported_jpeg_colorspace_cb()
- * @see image_util_foreach_supported_jpeg_colorspace()
- * @see image_util_encode_jpeg()
- */
+* @brief Encodes the image to the JPEG image
+* @since_tizen 2.3
+*
+* @remarks You must release @a jpeg_buffer using free().
+*
+* @param[in] image_buffer The original image buffer
+* @param[in] width The image width
+* @param[in] height The image height
+* @param[in] colorspace The original image colorspace
+* @param[in] quality The quality for JPEG image encoding (1 ~ 100)
+* @param[out] jpeg_buffer The created JPEG image buffer \n
+*                         The buffer is created by frameworks
+* @param[out] jpeg_size The created jpeg image buffer size
+*
+* @return 0 on success,
+*           otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_OUT_OF_MEMORY out of memory
+* @retval #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Format not supported
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+*
+* @see image_util_supported_jpeg_colorspace_cb()
+* @see image_util_foreach_supported_jpeg_colorspace()
+* @see image_util_encode_jpeg()
+*/
 int image_util_encode_jpeg_to_memory(const unsigned char *image_buffer, int width, int height, image_util_colorspace_e colorspace, int quality,  unsigned char** jpeg_buffer, unsigned int *jpeg_size);
-
 
 
 
