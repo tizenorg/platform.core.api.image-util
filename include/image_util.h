@@ -18,6 +18,7 @@
 #define __TIZEN_MEDIA_IMAGE_UTIL_H__
 
 #include <tizen.h>
+#include <media_packet.h>
 
 #ifdef __cplusplus
 extern "C"

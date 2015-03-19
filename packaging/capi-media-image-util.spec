@@ -11,6 +11,7 @@ BuildRequires:  pkgconfig(mm-common)
 BuildRequires:  pkgconfig(mmutil-jpeg)
 BuildRequires:  pkgconfig(mmutil-imgp)
 BuildRequires:  pkgconfig(capi-base-common)
+BuildRequires:  pkgconfig(capi-media-tool)
 BuildRequires:  cmake
 BuildRequires:  gettext-devel
 
