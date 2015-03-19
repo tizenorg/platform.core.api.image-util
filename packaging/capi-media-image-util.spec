@@ -11,13 +11,14 @@ BuildRequires:  pkgconfig(mm-common)
 BuildRequires:  pkgconfig(mmutil-jpeg)
 BuildRequires:  pkgconfig(mmutil-imgp)
 BuildRequires:  pkgconfig(capi-base-common)
+BuildRequires:  pkgconfig(capi-media-tool)
 BuildRequires:  cmake
 BuildRequires:  gettext-devel
 
 %description
 A Image Utility library in Tizen Native API package
 
-%package devel 
+%package devel
 Summary:    A Image Utility library in Tizen Native API (Development)
 Group:      Multimedia/Development
 Requires:   %{name} = %{version}-%{release}
