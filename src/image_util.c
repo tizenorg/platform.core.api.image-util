@@ -20,6 +20,7 @@
 #include <mm_util_imgp.h>
 #include <mm_util_jpeg.h>
 #include <image_util.h>
+#include <image_util_internal.h>
 #include <image_util_private.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -53,21 +54,27 @@ static int _convert_encode_colorspace_tbl[] = {
 	MM_UTIL_JPEG_FMT_YUV420						,	/* IMAGE_UTIL_COLORSPACE_YUV420 */
 	-1											,	/* IMAGE_UTIL_COLORSPACE_YUV422 */
 	MM_UTIL_JPEG_FMT_YUV420						,	/* IMAGE_UTIL_COLORSPACE_I420 */
-	MM_UTIL_JPEG_FMT_NV12						,	/* IMAGE_UTIL_COLORSPACE_NV12 */
+	-1											,	/* IMAGE_UTIL_COLORSPACE_NV12 */
 	-1											,	/* IMAGE_UTIL_COLORSPACE_UYVY */
-	MM_UTIL_JPEG_FMT_YUYV						,	/* IMAGE_UTIL_COLORSPACE_YUYV */
+	-1											,	/* IMAGE_UTIL_COLORSPACE_YUYV */
 	-1											,	/* IMAGE_UTIL_COLORSPACE_RGB565 */
 	MM_UTIL_JPEG_FMT_RGB888						,	/* IMAGE_UTIL_COLORSPACE_RGB888 */
 	MM_UTIL_JPEG_FMT_ARGB8888					,	/* IMAGE_UTIL_COLORSPACE_ARGB8888 */
 	MM_UTIL_JPEG_FMT_BGRA8888					,	/* IMAGE_UTIL_COLORSPACE_BGRA8888 */
 	MM_UTIL_JPEG_FMT_RGBA8888					,	/* IMAGE_UTIL_COLORSPACE_RGBA8888 */
 	-1											,	/* IMAGE_UTIL_COLORSPACE_BGRX8888 */
-	MM_UTIL_JPEG_FMT_NV21						,	/* IMAGE_UTIL_COLORSPACE_NV21 */
-	MM_UTIL_JPEG_FMT_NV16						,	/* IMAGE_UTIL_COLORSPACE_NV16 */
-	MM_UTIL_JPEG_FMT_NV61						,	/* IMAGE_UTIL_COLORSPACE_NV61 */
+	-1											,	/* IMAGE_UTIL_COLORSPACE_NV21 */
+	-1											,	/* IMAGE_UTIL_COLORSPACE_NV16 */
+	-1											,	/* IMAGE_UTIL_COLORSPACE_NV61 */
 };
 
 
+static int _convert_decode_scale_tbl[] = {
+	MM_UTIL_JPEG_DECODE_DOWNSCALE_1_1,
+	MM_UTIL_JPEG_DECODE_DOWNSCALE_1_2,
+	MM_UTIL_JPEG_DECODE_DOWNSCALE_1_4,
+	MM_UTIL_JPEG_DECODE_DOWNSCALE_1_8,
+};
 
 static int _convert_image_util_error_code(const char *func, int code){
 	int ret = IMAGE_UTIL_ERROR_INVALID_OPERATION;
@@ -189,7 +196,7 @@ int _image_util_check_transcode_is_completed(transformation_s * handle, bool *is
 
 	if(handle && handle->image_h)
 	{
-		ret = mm_transform_is_completed(handle->image_h, is_completed);
+		ret = mm_util_transform_is_completed(handle->image_h, is_completed);
 	}
 	else
 	{
@@ -436,6 +443,12 @@ int image_util_transform_get_colorspace(transformation_h handle, image_util_colo
 		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 	}
 
+	if(!_handle->set_convert)
+	{
+		LOGE("Did not set colorspace before");
+		return IMAGE_UTIL_ERROR_INVALID_OPERATION;
+	}
+
 	if(!colorspace)
 	{
 		LOGE("colorspace area parameter error");
@@ -457,6 +470,12 @@ int image_util_transform_get_resolution(transformation_h handle, unsigned int *w
 	{
 		LOGE("Invalid Handle");
 		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+
+	if(!_handle->set_resize)
+	{
+		LOGE("Did not set resolution before");
+		return IMAGE_UTIL_ERROR_INVALID_OPERATION;
 	}
 
 	if(!width || !height)
@@ -484,6 +503,12 @@ int image_util_transform_get_rotation(transformation_h handle, image_util_rotati
 		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 	}
 
+	if(!_handle->set_rotate)
+	{
+		LOGE("Did not set rotation before");
+		return IMAGE_UTIL_ERROR_INVALID_OPERATION;
+	}
+
 	if(!rotation)
 	{
 		LOGE("rotation area parameter error");
@@ -506,9 +531,9 @@ int image_util_transform_get_crop_area(transformation_h handle, unsigned int *st
 		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 	}
 
-	if(_handle->set_resize)
+	if(!_handle->set_crop)
 	{
-		LOGE("Crop and Resize can't do at the same time");
+		LOGE("Did not set crop area before");
 		return IMAGE_UTIL_ERROR_INVALID_OPERATION;
 	}
 
@@ -733,6 +758,66 @@ int image_util_decode_jpeg_from_memory( const unsigned char * jpeg_buffer , int 
 	mm_util_jpeg_yuv_data decoded;
 
 	ret = mm_util_decode_from_jpeg_memory(&decoded , jpeg_buffer, jpeg_size, _convert_encode_colorspace_tbl[colorspace] );
+
+	if( ret == 0 ){
+		*image_buffer = decoded.data;
+		if(width)
+			*width = decoded.width;
+		if(height)
+			*height = decoded.height;
+		if(size)
+			*size = decoded.size;
+	}
+
+	return _convert_image_util_error_code(__func__, ret);
+}
+
+int image_util_decode_jpeg_with_downscale( const char *path, image_util_colorspace_e colorspace, image_util_scale_e downscale, unsigned char ** image_buffer, int *width, int *height, unsigned int *size)
+{
+	int ret = IMAGE_UTIL_ERROR_NONE;
+
+	if( path == NULL || image_buffer == NULL || size == NULL)
+		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+	if(strlen (path) == 0)
+		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_NO_SUCH_FILE);
+	if( colorspace < 0 || colorspace >= sizeof(_convert_colorspace_tbl)/sizeof(int))
+		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+	if( _convert_encode_colorspace_tbl[colorspace] == -1 )
+		return _convert_image_util_error_code(__func__, MM_ERROR_IMAGE_NOT_SUPPORT_FORMAT);
+	if( downscale < 0 || downscale >= sizeof(_convert_decode_scale_tbl)/sizeof(int))
+		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+
+	mm_util_jpeg_yuv_data decoded = { 0, 0, 0, NULL};
+
+	ret = mm_util_decode_from_jpeg_file_with_downscale(&decoded, (char*)path, _convert_encode_colorspace_tbl[colorspace], _convert_decode_scale_tbl[downscale]);
+	if( ret == 0 ){
+		*image_buffer = decoded.data;
+		if(width)
+			*width = decoded.width;
+		if(height)
+			*height = decoded.height;
+		if(size)
+			*size = decoded.size;
+	}
+	return _convert_image_util_error_code(__func__, ret);
+}
+
+int image_util_decode_jpeg_from_memory_with_downscale( const unsigned char * jpeg_buffer, int jpeg_size, image_util_colorspace_e colorspace, image_util_scale_e downscale, unsigned char ** image_buffer, int *width, int *height, unsigned int *size)
+{
+	int ret = IMAGE_UTIL_ERROR_NONE;
+
+	if( jpeg_buffer == NULL || image_buffer == NULL || size == NULL)
+		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+	if( colorspace < 0 ||colorspace >= sizeof(_convert_colorspace_tbl)/sizeof(int))
+		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+	if( _convert_encode_colorspace_tbl[colorspace] == -1 )
+		return _convert_image_util_error_code(__func__, MM_ERROR_IMAGE_NOT_SUPPORT_FORMAT);
+	if( downscale < 0 || downscale >= sizeof(_convert_decode_scale_tbl)/sizeof(int))
+		return _convert_image_util_error_code(__func__, IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+
+	mm_util_jpeg_yuv_data decoded;
+
+	ret = mm_util_decode_from_jpeg_memory_with_downscale(&decoded, jpeg_buffer, jpeg_size, _convert_encode_colorspace_tbl[colorspace], _convert_decode_scale_tbl[downscale]);
 
 	if( ret == 0 ){
 		*image_buffer = decoded.data;
