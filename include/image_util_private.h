@@ -24,15 +24,13 @@ extern "C"
 {
 #endif
 
-typedef struct
-{
+typedef struct {
 	void *user_data;
 	media_packet_h dst;
 	image_util_transform_completed_cb image_processing_completed_cb;
 } image_util_cb_s;
 
-typedef struct
-{
+typedef struct {
 	media_packet_h src;
 	media_packet_h dst;
 	image_util_colorspace_e colorspace;
