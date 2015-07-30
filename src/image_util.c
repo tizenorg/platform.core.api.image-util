@@ -14,7 +14,6 @@
 * limitations under the License.
 */
 
-#define LOG_TAG "CAPI_MEDIA_IMAGE_UTIL"
 #include <dlog.h>
 
 #include <mm_util_imgp.h>
@@ -116,7 +115,7 @@ static int _convert_image_util_error_code(const char *func, int code)
 
 	}
 
-	LOGD("[%s] %s(0x%08x)", func, errorstr, ret);
+	image_util_debug("[%s] %s(0x%08x)", func, errorstr, ret);
 	IMAGE_UTIL_SAFE_FREE(errorstr);
 	return ret;
 }
@@ -125,19 +124,18 @@ static image_util_error_e _image_util_error_convert(int error)
 {
 	switch (error) {
 		case MM_ERROR_NONE:
-			LOGD("Error None");
+			image_util_debug("Error None");
 			return IMAGE_UTIL_ERROR_NONE;
 		case MM_ERROR_IMAGE_INVALID_VALUE:
-			LOGE("INVALID_PARAMETER(0x%08x)", IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+			image_util_error("INVALID_PARAMETER(0x%08x)", IMAGE_UTIL_ERROR_INVALID_PARAMETER);
 			return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 		case MM_ERROR_IMAGE_NOT_SUPPORT_FORMAT:
-			LOGE("NOT_SUPPORTED_FORMAT(0x%08x)", IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT);
+			image_util_error("NOT_SUPPORTED_FORMAT(0x%08x)", IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT);
 			return IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT;
 		default:
-			break;
+			image_util_error("INVALID_OPERATION(0x%08x)", error);
+			return IMAGE_UTIL_ERROR_INVALID_OPERATION;
 	}
-	LOGE("INVALID_OPERATION(0x%08x)", error);
-	return IMAGE_UTIL_ERROR_INVALID_OPERATION;
 }
 
 static void _image_util_transform_completed_cb(media_packet_h *dst, int error, void *user_data)
@@ -160,11 +158,9 @@ static int _image_util_create_transform_handle(transformation_s *handle)
 
 	ret = mm_util_create(&image_h);
 
-	if (ret == MM_ERROR_NONE) {
-		handle->image_h = image_h;
-	} else {
-		LOGE("Error in mm_util_create");
-	}
+	image_util_retvm_if((ret != MM_ERROR_NONE), ret, "Error in mm_util_create");
+
+	handle->image_h = image_h;
 
 	return ret;
 }
@@ -172,12 +168,12 @@ static int _image_util_create_transform_handle(transformation_s *handle)
 static bool _image_util_check_resolution(int width, int height)
 {
 	if (width <= 0) {
-		LOGE("invalid width [%d]", width);
+		image_util_error("invalid width [%d]", width);
 		return false;
 	}
 
 	if (height <= 0) {
-		LOGE("invalid height [%d]", height);
+		image_util_error("invalid height [%d]", height);
 		return false;
 	}
 
@@ -205,18 +201,12 @@ int image_util_transform_create(transformation_h *handle)
 {
 	int ret = IMAGE_UTIL_ERROR_NONE;
 
-	LOGD("image_util_create");
+	image_util_debug("image_util_create");
 
-	if (handle == NULL) {
-		LOGE("Invalid Handle");
-		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
-	}
+	image_util_retvm_if((handle == NULL), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid Handle");
 
 	transformation_s *_handle = (transformation_s *)calloc(1, sizeof(transformation_s));
-	if (_handle == NULL) {
-		LOGE("OUT_OF_MEMORY(0x%08x)", IMAGE_UTIL_ERROR_OUT_OF_MEMORY);
-		return IMAGE_UTIL_ERROR_OUT_OF_MEMORY;
-	}
+	image_util_retvm_if((_handle == NULL), IMAGE_UTIL_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY(0x%08x)", IMAGE_UTIL_ERROR_OUT_OF_MEMORY);
 
 	_handle->colorspace = -1;
 	_handle->_util_cb = NULL;
@@ -229,7 +219,7 @@ int image_util_transform_create(transformation_h *handle)
 
 	ret = _image_util_create_transform_handle(_handle);
 	if (ret != MM_ERROR_NONE) {
-		LOGE("INVALID_OPERATION");
+		image_util_error("INVALID_OPERATION");
 		IMAGE_UTIL_SAFE_FREE(_handle);
 		return IMAGE_UTIL_ERROR_INVALID_OPERATION;
 	}
@@ -241,29 +231,21 @@ int image_util_transform_create(transformation_h *handle)
 
 int  image_util_transform_set_hardware_acceleration(transformation_h handle, bool mode)
 {
+	int ret = IMAGE_UTIL_ERROR_NONE;
 	transformation_s *_handle = (transformation_s *)handle;
 
-	LOGD("Set hardware_acceleration %d", mode);
+	image_util_debug("Set hardware_acceleration %d", mode);
 
-	if (_handle == NULL) {
-		LOGE("Invalid Handle");
-		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
-	}
-
+	image_util_retvm_if((_handle == NULL), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid Handle");
 #ifndef ENABLE_HW_ACCELERATION
-	if (mode == true) {
-		LOGE("hardware acceleration is not supported");
-		return IMAGE_UTIL_ERROR_NOT_SUPPORTED;
-	}
+	image_util_retvm_if((mode == true), IMAGE_UTIL_ERROR_NOT_SUPPORTED, "hardware acceleration is not supported");
 #endif
 
-	if (mm_util_set_hardware_acceleration(_handle->image_h, mode) == MM_ERROR_NONE) {
-		LOGD("Set hardware_acceleration %d", mode);
-		_handle->hardware_acceleration = mode;
-	} else {
-		LOGE("Error - Set hardware_acceleration");
-		return IMAGE_UTIL_ERROR_INVALID_OPERATION;
-	}
+	ret = mm_util_set_hardware_acceleration(_handle->image_h, mode);
+	image_util_retvm_if((ret != MM_ERROR_NONE), IMAGE_UTIL_ERROR_INVALID_OPERATION, "Error - Set hardware_acceleration");
+
+	image_util_debug("Set hardware_acceleration %d", mode);
+	_handle->hardware_acceleration = mode;
 
 	return IMAGE_UTIL_ERROR_NONE;
 }
@@ -273,18 +255,12 @@ int image_util_transform_set_colorspace(transformation_h handle, image_util_colo
 	int ret = IMAGE_UTIL_ERROR_NONE;
 	transformation_s *_handle = (transformation_s *)handle;
 
-	LOGD("Set colorspace_convert_info [%d]", colorspace);
+	image_util_debug("Set colorspace_convert_info [%d]", colorspace);
 
-	if (_handle == NULL) {
-		LOGE("Invalid Handle");
-		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
-	}
+	image_util_retvm_if((_handle == NULL), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid Handle");
 
 	ret = mm_util_set_colorspace_convert(_handle->image_h, colorspace);
-	if (ret != MM_ERROR_NONE) {
-		LOGE("IMAGE_UTIL_ERROR_INVALID_OPERATION(0x%08x)", IMAGE_UTIL_ERROR_INVALID_OPERATION);
-		return IMAGE_UTIL_ERROR_INVALID_OPERATION;
-	}
+	image_util_retvm_if((ret != MM_ERROR_NONE), IMAGE_UTIL_ERROR_INVALID_OPERATION, "IMAGE_UTIL_ERROR_INVALID_OPERATION(0x%08x)", IMAGE_UTIL_ERROR_INVALID_OPERATION);
 
 	_handle->colorspace = colorspace;
 	_handle->set_convert = true;
@@ -297,29 +273,19 @@ int image_util_transform_set_resolution(transformation_h handle, unsigned int wi
 	int ret = IMAGE_UTIL_ERROR_NONE;
 	transformation_s *_handle = (transformation_s *)handle;
 
-	LOGD("Set resize_info w[%d] h[%d]", width, height);
+	image_util_debug("Set resize_info w[%d] h[%d]", width, height);
 
-	if (_handle == NULL) {
-		LOGE("Invalid Handle");
-		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
-	}
-
-	if (_handle->set_crop) {
-		LOGE("Crop and Resize can't do at the same time");
-		return IMAGE_UTIL_ERROR_INVALID_OPERATION;
-	}
+	image_util_retvm_if((_handle == NULL), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid Handle");
+	image_util_retvm_if((_handle->set_crop), IMAGE_UTIL_ERROR_INVALID_OPERATION, "Crop and Resize can't do at the same time");
 
 	if (_image_util_check_resolution(width, height)) {
 		ret = mm_util_set_resolution(_handle->image_h, width, height);
-		if (ret != MM_ERROR_NONE) {
-			LOGE("IMAGE_UTIL_ERROR_INVALID_OPERATION(0x%08x)", IMAGE_UTIL_ERROR_INVALID_OPERATION);
-			return IMAGE_UTIL_ERROR_INVALID_OPERATION;
-		}
+		image_util_retvm_if((ret != MM_ERROR_NONE), IMAGE_UTIL_ERROR_INVALID_OPERATION, "IMAGE_UTIL_ERROR_INVALID_OPERATION(0x%08x)", IMAGE_UTIL_ERROR_INVALID_OPERATION);
 		_handle->width = width;
 		_handle->height = height;
 		_handle->set_resize  = true;
 	} else {
-		LOGE("INVALID_PARAMETER");
+		image_util_error("INVALID_PARAMETER");
 		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 	}
 
@@ -331,18 +297,12 @@ int image_util_transform_set_rotation(transformation_h handle, image_util_rotati
 	int ret = IMAGE_UTIL_ERROR_NONE;
 	transformation_s *_handle = (transformation_s *)handle;
 
-	LOGD("Set rotate_info [%d]", rotation);
+	image_util_debug("Set rotate_info [%d]", rotation);
 
-	if (_handle == NULL) {
-		LOGE("Invalid Handle");
-		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
-	}
+	image_util_retvm_if((_handle == NULL), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid Handle");
 
 	ret = mm_util_set_rotation(_handle->image_h, rotation);
-	if (ret != MM_ERROR_NONE) {
-		LOGE("IMAGE_UTIL_ERROR_INVALID_OPERATION(0x%08x)", IMAGE_UTIL_ERROR_INVALID_OPERATION);
-		return IMAGE_UTIL_ERROR_INVALID_OPERATION;
-	}
+	image_util_retvm_if((ret != MM_ERROR_NONE), IMAGE_UTIL_ERROR_INVALID_OPERATION, "IMAGE_UTIL_ERROR_INVALID_OPERATION(0x%08x)", IMAGE_UTIL_ERROR_INVALID_OPERATION);
 	_handle->rotation = rotation;
 	_handle->set_rotate = true;
 
@@ -356,34 +316,24 @@ int image_util_transform_set_crop_area(transformation_h handle, unsigned int sta
 	int dest_width;
 	int dest_height;
 
-	if (_handle == NULL) {
-		LOGE("Invalid Handle");
-		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
-	}
-
-	if (_handle->set_resize) {
-		LOGE("Crop and Resize can't do at the same time");
-		return IMAGE_UTIL_ERROR_INVALID_OPERATION;
-	}
+	image_util_retvm_if((_handle == NULL), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid Handle");
+	image_util_retvm_if((_handle->set_resize), IMAGE_UTIL_ERROR_INVALID_OPERATION, "Crop and Resize can't do at the same time");
 
 	dest_width = end_x - start_x;
 	dest_height = end_y - start_y;
 
-	LOGD("Set crop_info x[%d] y[%d] w[%d] h[%d]", start_x, start_y, dest_width, dest_height);
+	image_util_debug("Set crop_info x[%d] y[%d] w[%d] h[%d]", start_x, start_y, dest_width, dest_height);
 
 	if (_image_util_check_resolution(dest_width, dest_height)) {
 		ret = mm_util_set_crop_area(_handle->image_h, start_x, start_y, end_x, end_y);
-		if (ret != MM_ERROR_NONE) {
-			LOGE("IMAGE_UTIL_ERROR_INVALID_OPERATION(0x%08x)", IMAGE_UTIL_ERROR_INVALID_OPERATION);
-			return IMAGE_UTIL_ERROR_INVALID_OPERATION;
-		}
+		image_util_retvm_if((ret != MM_ERROR_NONE), IMAGE_UTIL_ERROR_INVALID_OPERATION, "IMAGE_UTIL_ERROR_INVALID_OPERATION(0x%08x)", IMAGE_UTIL_ERROR_INVALID_OPERATION);
 		_handle->start_x = start_x;
 		_handle->start_y = start_y;
 		_handle->end_x = end_x;
 		_handle->end_y = end_y;
 		_handle->set_crop  = true;
 	} else {
-		LOGE("INVALID_PARAMETER");
+		image_util_error("INVALID_PARAMETER");
 		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 	}
 
@@ -395,20 +345,20 @@ int image_util_transform_get_colorspace(transformation_h handle, image_util_colo
 	int ret = IMAGE_UTIL_ERROR_NONE;
 	transformation_s *_handle = (transformation_s *)handle;
 
-	LOGD("Get colorspace_convert_info [%d]", colorspace);
+	image_util_debug("Get colorspace_convert_info [%d]", colorspace);
 
 	if (_handle == NULL) {
-		LOGE("Invalid Handle");
+		image_util_error("Invalid Handle");
 		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!_handle->set_convert) {
-		LOGE("Did not set colorspace before");
+	if (!colorspace) {
+		image_util_error("colorspace area parameter error");
 		return IMAGE_UTIL_ERROR_INVALID_OPERATION;
 	}
 
-	if (!colorspace) {
-		LOGE("colorspace area parameter error");
+	if (!_handle->set_convert) {
+		image_util_error("Did not set colorspace before");
 		return IMAGE_UTIL_ERROR_INVALID_OPERATION;
 	}
 
@@ -421,20 +371,20 @@ int image_util_transform_get_resolution(transformation_h handle, unsigned int *w
 	int ret = IMAGE_UTIL_ERROR_NONE;
 	transformation_s *_handle = (transformation_s *)handle;
 
-	LOGD("Set resize_info w[%d] h[%d]", width, height);
+	image_util_debug("Set resize_info w[%d] h[%d]", width, height);
 
 	if (_handle == NULL) {
-		LOGE("Invalid Handle");
+		image_util_error("Invalid Handle");
 		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!_handle->set_resize) {
-		LOGE("Did not set resolution before");
+	if (!width || !height) {
+		image_util_error("resolution area parameter error");
 		return IMAGE_UTIL_ERROR_INVALID_OPERATION;
 	}
 
-	if (!width || !height) {
-		LOGE("resolution area parameter error");
+	if (!_handle->set_resize) {
+		image_util_error("Did not set resolution before");
 		return IMAGE_UTIL_ERROR_INVALID_OPERATION;
 	}
 
@@ -449,20 +399,20 @@ int image_util_transform_get_rotation(transformation_h handle, image_util_rotati
 	int ret = IMAGE_UTIL_ERROR_NONE;
 	transformation_s *_handle = (transformation_s *)handle;
 
-	LOGD("Set rotate_info [%d]", rotation);
+	image_util_debug("Set rotate_info [%d]", rotation);
 
 	if (_handle == NULL) {
-		LOGE("Invalid Handle");
+		image_util_error("Invalid Handle");
 		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!_handle->set_rotate) {
-		LOGE("Did not set rotation before");
+	if (!rotation) {
+		image_util_error("rotation area parameter error");
 		return IMAGE_UTIL_ERROR_INVALID_OPERATION;
 	}
 
-	if (!rotation) {
-		LOGE("rotation area parameter error");
+	if (!_handle->set_rotate) {
+		image_util_error("Did not set rotation before");
 		return IMAGE_UTIL_ERROR_INVALID_OPERATION;
 	}
 
@@ -477,17 +427,17 @@ int image_util_transform_get_crop_area(transformation_h handle, unsigned int *st
 	transformation_s *_handle = (transformation_s *)handle;
 
 	if (_handle == NULL) {
-		LOGE("Invalid Handle");
+		image_util_error("Invalid Handle");
 		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 	}
 
-	if (!_handle->set_crop) {
-		LOGE("Did not set crop area before");
+	if (!start_x || !start_y || !end_x || !end_y) {
+		image_util_error("crop area parameter error");
 		return IMAGE_UTIL_ERROR_INVALID_OPERATION;
 	}
 
-	if (!start_x || !start_y || !end_x || !end_y) {
-		LOGE("crop area parameter error");
+	if (!_handle->set_crop) {
+		image_util_error("Did not set crop area before");
 		return IMAGE_UTIL_ERROR_INVALID_OPERATION;
 	}
 
@@ -504,12 +454,9 @@ int image_util_transform_run(transformation_h handle, media_packet_h src, image_
 	int ret = IMAGE_UTIL_ERROR_NONE;
 	transformation_s *_handle = (transformation_s *)handle;
 
-	LOGD("image_util_transform");
+	image_util_debug("image_util_transform");
 
-	if (_handle == NULL) {
-		LOGE("Invalid Handle");
-		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
-	}
+	image_util_retvm_if((_handle == NULL), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid Handle");
 
 	if (completed_cb) {
 		if (_handle->_util_cb != NULL) {
@@ -517,22 +464,19 @@ int image_util_transform_run(transformation_h handle, media_packet_h src, image_
 			_handle->_util_cb = NULL;
 		}
 		_handle->_util_cb = (image_util_cb_s *)calloc(1, sizeof(image_util_cb_s));
-		if (!_handle->_util_cb) {
-			LOGE("Out of memory");
-			return IMAGE_UTIL_ERROR_OUT_OF_MEMORY;
-		}
+		image_util_retvm_if((_handle->_util_cb == NULL), IMAGE_UTIL_ERROR_OUT_OF_MEMORY, "Out of memory");
 
 		_handle->_util_cb->user_data = user_data;
 		_handle->_util_cb->image_processing_completed_cb = completed_cb;
 	} else {
-		LOGE("INVALID_PARAMETER[completed_cb](0x%08x)", IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+		image_util_error("INVALID_PARAMETER[completed_cb](0x%08x)", IMAGE_UTIL_ERROR_INVALID_PARAMETER);
 		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 	}
 
 	if (_handle->_util_cb && src && (_handle->set_convert || _handle->set_resize || _handle->set_rotate || _handle->set_crop)) {
 		ret = mm_util_transform(_handle->image_h, src, (mm_util_completed_callback)_image_util_transform_completed_cb, (void *)_handle->_util_cb);
 	} else {
-		LOGE("INVALID_PARAMETER[transform] (0x%08x)", IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+		image_util_error("INVALID_PARAMETER[transform] (0x%08x)", IMAGE_UTIL_ERROR_INVALID_PARAMETER);
 		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 	}
 	return _convert_image_util_error_code(__func__, ret);
@@ -543,10 +487,10 @@ int image_util_transform_destroy(transformation_h handle)
 	int ret = IMAGE_UTIL_ERROR_NONE;
 	transformation_s *_handle = (transformation_s *)handle;
 
-	LOGD("image_util_destroy");
+	image_util_debug("image_util_destroy");
 
 	if (_handle == NULL) {
-		LOGE("Invalid Handle");
+		image_util_error("Invalid Handle");
 		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 	}
 
