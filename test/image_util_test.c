@@ -15,14 +15,17 @@
 */
 
 #include <glib.h>
+#include <glib/gprintf.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <image_util.h>
 #include <image_util_type.h>
 #include <mm_error.h>
 
 #define MAX_STRING_LEN 128
 #define IMAGE_FORMAT_LABEL_BUFFER_SIZE 4
+#define IMAGE_TEST_MAX_REPEAT_COUNT 100
 
 #define IMAGE_UTIL_SAFE_FREE(src)      { if(src) {free(src); src = NULL;}}
 
@@ -30,14 +33,13 @@
 GMainLoop *g_loop = NULL;
 transformation_h g_handle = NULL;
 media_packet_h g_src = NULL;
-media_packet_h g_result = NULL;
 char *g_path = NULL;
 unsigned int g_width = 0;
 unsigned int g_height = 0;
 int g_format = -1;
 
-GCond *g_thread_cond = NULL;
-GMutex *g_thread_mutex = NULL;
+GCond g_thread_cond;
+GMutex g_thread_mutex;
 
 enum {
     CURRENT_STATE_MAIN_MENU,
@@ -57,19 +59,19 @@ int g_menu_set_image_state = CURRENT_STATE_SET_IMAGE_NONE;
 
 void _wait()
 {
-	g_mutex_lock(g_thread_mutex);
+	g_mutex_lock(&g_thread_mutex);
 	g_printf("waiting... untill finishing transform \n");
-	g_cond_wait(g_thread_cond, g_thread_mutex);
+	g_cond_wait(&g_thread_cond, &g_thread_mutex);
 	g_printf("<=== get signal from callback \n");
-	g_mutex_unlock(g_thread_mutex);
+	g_mutex_unlock(&g_thread_mutex);
 }
 
 void _signal()
 {
-	g_mutex_lock(g_thread_mutex);
-	g_cond_signal(g_thread_cond);
+	g_mutex_lock(&g_thread_mutex);
+	g_cond_signal(&g_thread_cond);
 	g_printf("===> send signal to test proc \n");
-	g_mutex_unlock(g_thread_mutex);
+	g_mutex_unlock(&g_thread_mutex);
 }
 
 media_format_mimetype_e
@@ -136,7 +138,7 @@ bool test_transform_completed_cb(media_packet_h *packet, image_util_error_e erro
 
 	g_printf("test_transform_completed_cb============= [%d] \n", error);
 	if (error == MM_ERROR_NONE) {
-		g_printf("completed");
+		g_printf("<<<<< SUCCESS >>>>>");
 		output_fmt = (char *)malloc(sizeof(char) * IMAGE_FORMAT_LABEL_BUFFER_SIZE);
 		if (output_fmt) {
 			if (media_packet_get_format(*packet, &dst_fmt) != MM_ERROR_NONE) {
@@ -144,18 +146,6 @@ bool test_transform_completed_cb(media_packet_h *packet, image_util_error_e erro
 				_signal();
 				return FALSE;
 			}
-
-			if (g_result != NULL) {
-				media_packet_destroy(g_result);
-			}
-			media_packet_create_alloc(dst_fmt, NULL, NULL, &g_result);
-			if (media_packet_get_buffer_size(g_result, &size) != MM_ERROR_NONE) {
-				g_printf("Imedia_packet_get_format)");
-				media_format_unref(dst_fmt);
-				_signal();
-				return FALSE;
-			}
-			g_printf("g_result: %p [%d] \n", g_result, size);
 
 			if (media_format_get_video_info(dst_fmt, &dst_mimetype, &dst_width, &dst_height, &dst_avg_bps, &dst_max_bps) == MEDIA_FORMAT_ERROR_NONE) {
 				memset(output_fmt, 0, IMAGE_FORMAT_LABEL_BUFFER_SIZE);
@@ -182,7 +172,7 @@ bool test_transform_completed_cb(media_packet_h *packet, image_util_error_e erro
 				_signal();
 				return FALSE;
 			}
-			g_printf("dst: %p [%d] \n", dst, size);
+			g_printf("dst: %p [%llu] \n", dst, size);
 			fwrite(dst, 1, size, fpout);
 			g_printf("FREE \n");
 			fclose(fpout);
@@ -192,7 +182,7 @@ bool test_transform_completed_cb(media_packet_h *packet, image_util_error_e erro
 		g_printf("Free (output_fmt) \n");
 		IMAGE_UTIL_SAFE_FREE(output_fmt);
 	} else {
-		g_printf("[ERROR] complete cb");
+		g_printf("<<<<< ERROR >>>>> complete cb");
 		_signal();
 		return FALSE;
 	}
@@ -337,7 +327,7 @@ static void _destroy()
 	g_handle = NULL;
 }
 
-static void _transform(char *cmd)
+static void _transform(const char *cmd)
 {
 	int ret = 0;
 	unsigned int width = 0;
@@ -350,7 +340,7 @@ static void _transform(char *cmd)
 	int end_y;
 
 	if (!strcmp("convert", cmd)) {
-		colorspace = IMAGE_UTIL_COLORSPACE_RGB888;
+		colorspace = IMAGE_UTIL_COLORSPACE_I420;
 
 		ret = image_util_transform_set_colorspace(g_handle, colorspace);
 		if (ret != IMAGE_UTIL_ERROR_NONE) {
@@ -360,8 +350,10 @@ static void _transform(char *cmd)
 	}
 
 	if (!strcmp("resize", cmd)) {
-		width = 480;
-		height = 360;
+		width = g_width/2;
+		height = g_height/2;
+//		width = g_width;
+//		height = g_height;
 
 		ret = image_util_transform_set_resolution(g_handle, width, height);
 		if (ret != IMAGE_UTIL_ERROR_NONE) {
@@ -394,7 +386,7 @@ static void _transform(char *cmd)
 	}
 
 	if (!strcmp("run", cmd)) {
-		ret = image_util_transform_run(g_handle, g_src, test_transform_completed_cb, NULL);
+		ret = image_util_transform_run(g_handle, g_src, (image_util_transform_completed_cb)test_transform_completed_cb, NULL);
 		if (ret != IMAGE_UTIL_ERROR_NONE) {
 			g_printf("[%d]Error image_util_transform [%d]\n", __LINE__, ret);
 			return;
@@ -402,6 +394,16 @@ static void _transform(char *cmd)
 		_wait();
 	}
 
+}
+
+static void _loop_test(const int count)
+{
+	int i = 0;
+	for(i = 0; i < count; i++) {
+		_transform("run");
+		_set_image();
+		g_printf("<<<<< %03d >>>>>\n", i);
+	}
 }
 
 void quit(void)
@@ -445,7 +447,7 @@ static void display_menu(void)
 	g_print("5. set resize \n");
 	g_print("6. set rotate \n");
 	g_print("7. run \n");
-	g_print("8. run with result \n");
+	g_print("8. run repeatly \n");
 	g_print("9. destroy handle \n");
 	g_print("0. quit \n");
 	g_print("----------------------------------------------------\n");
@@ -523,6 +525,8 @@ static void interpret_cmd(char *cmd)
 				_transform("rotate");
 			} else if (!strncmp(cmd, "7", len)) {
 				_transform("run");
+			} else if (!strncmp(cmd, "8", len)) {
+				_loop_test(IMAGE_TEST_MAX_REPEAT_COUNT);
 			} else if (!strncmp(cmd, "9", len)) {
 				_destroy();
 			} else if (!strncmp(cmd, "0", len)) {
@@ -578,8 +582,8 @@ int main(int argc, char **argv)
 	g_height = atoi(argv[3]);
 	g_format = atoi(argv[4]);
 
-	g_thread_mutex = g_mutex_new();
-	g_thread_cond = g_cond_new();
+	g_mutex_init(&g_thread_mutex);
+	g_cond_init(&g_thread_cond);
 
 	ret = image_util_transform_create(&g_handle);
 	if (ret != IMAGE_UTIL_ERROR_NONE) {
@@ -611,8 +615,8 @@ int main(int argc, char **argv)
 	g_main_loop_unref(g_loop);
 
 Exit:
-	g_mutex_free(g_thread_mutex);
-	g_cond_free(g_thread_cond);
+	g_mutex_clear(&g_thread_mutex);
+	g_cond_clear(&g_thread_cond);
 	if (g_path) {
 		IMAGE_UTIL_SAFE_FREE(g_path);
 		g_printf("[%d]Success file path is destroyed \n", __LINE__);

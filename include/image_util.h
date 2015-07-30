@@ -24,8 +24,6 @@ extern "C"
 {
 #endif
 
-#define IMAGE_UTIL_ERROR_CLASS          TIZEN_ERROR_MULTIMEDIA_CLASS | 0x70
-
 /**
  * @file image_util.h
  * @brief This file contains the image util API.

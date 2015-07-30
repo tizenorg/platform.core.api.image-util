@@ -18,11 +18,44 @@
 #define __TIZEN_MEDIA_IMAGE_UTIL_PRIVATE_H__
 
 #include <image_util_type.h>
+#include <dlog.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
+#ifdef LOG_TAG
+#undef LOG_TAG
+#endif
+
+#define LOG_TAG "CAPI_MEDIA_IMAGE_UTIL"
+
+#define FONT_COLOR_RESET    "\033[0m"
+#define FONT_COLOR_RED      "\033[31m"
+
+#define image_util_debug(fmt, arg...) do { \
+		LOGD(FONT_COLOR_RESET""fmt"", ##arg);     \
+	} while (0)
+
+#define image_util_error(fmt, arg...) do { \
+		LOGE(FONT_COLOR_RED""fmt"", ##arg);     \
+	} while (0)
+
+#define image_util_retm_if(expr, fmt, arg...) do { \
+		if(expr) { \
+			LOGE(FONT_COLOR_RED""fmt"", ##arg);     \
+			return; \
+		} \
+	} while (0)
+
+#define image_util_retvm_if(expr, val, fmt, arg...) do { \
+		if(expr) { \
+			LOGE(FONT_COLOR_RED""fmt"", ##arg);     \
+			return (val); \
+		} \
+	} while (0)
 
 typedef struct {
 	void *user_data;

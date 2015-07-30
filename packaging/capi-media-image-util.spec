@@ -13,7 +13,6 @@ BuildRequires:  pkgconfig(mmutil-imgp)
 BuildRequires:  pkgconfig(capi-base-common)
 BuildRequires:  pkgconfig(capi-media-tool)
 BuildRequires:  cmake
-BuildRequires:  gettext-devel
 
 %description
 A Image Utility library in Tizen Native API package
@@ -36,8 +35,16 @@ A Image Utility library in Tizen Native API (Development) package
 cp %{SOURCE1001} .
 
 %build
+export CFLAGS+=" -Wextra -Wno-array-bounds"
+export CFLAGS+=" -Wno-ignored-qualifiers -Wno-unused-parameter -Wshadow"
+export CFLAGS+=" -Wwrite-strings -Wswitch-default"
 MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
-%cmake . -DFULLVER=%{version} -DMAJORVER=${MAJORVER}
+%cmake . -DFULLVER=%{version} -DMAJORVER=${MAJORVER} \
+%if 0%{?model_build_feature_multimedia_image_hw_acceleration}
+ -DFEATURE_ENABLE_HW_ACCELERATION:BOOL=ON
+%else
+ -DFEATURE_ENABLE_HW_ACCELERATION:BOOL=OFF
+%endif
 %__make %{?jobs:-j%jobs}
 
 %install
