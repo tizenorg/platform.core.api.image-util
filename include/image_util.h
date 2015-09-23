@@ -59,6 +59,7 @@ int image_util_transform_create(transformation_h *handle);
 
 /**
 * @brief Sets the image util's accurate mode.
+* @since_tizen 2.3
 *
 * @details This function set if you use hardware accerlation or not.
 *
