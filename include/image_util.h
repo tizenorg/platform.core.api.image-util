@@ -59,6 +59,7 @@ int image_util_transform_create(transformation_h *handle);
 
 /**
 * @brief Sets the image util's accurate mode.
+* @since_tizen 2.3
 *
 * @details This function set if you use hardware accerlation or not.
 *
@@ -289,6 +290,8 @@ int image_util_transform_get_crop_area(transformation_h handle, unsigned int *st
 *
 * @details The function execute asynchronously, which contains complete callback \n
 *          If you set more than two transforming, the order of running is crop or resolution, colorspace converting, rotaion. \n
+*          The transformation does not support that the width of RGB color image is not a multiple of 4. \n
+*          The transformation does not support that the width of YUV color image is not a multiple of 8.
 *
 * @param[in] handle The handle of transform
 * @param[in] src The handle to image util transform
