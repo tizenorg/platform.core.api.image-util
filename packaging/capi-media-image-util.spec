@@ -1,6 +1,6 @@
 Name:       capi-media-image-util
 Summary:    A Image Utility library in Tizen Native API
-Version:    0.1.3
+Version:    0.1.4
 Release:    0
 Group:      Multimedia/API
 License:    Apache-2.0
@@ -48,6 +48,10 @@ MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
 %__make %{?jobs:-j%jobs}
 
 %install
+rm -rf %{buildroot}
+mkdir -p %{buildroot}/usr/share/license
+cp LICENSE.APLv2.0 %{buildroot}/usr/share/license/%{name}
+
 %make_install
 
 %post -p /sbin/ldconfig
@@ -56,7 +60,7 @@ MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
 
 %files
 %manifest %{name}.manifest
-%license LICENSE.APLv2.0
+%{_datadir}/license/%{name}
 %{_libdir}/lib*.so.*
 
 %files devel 
