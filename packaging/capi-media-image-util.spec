@@ -1,6 +1,6 @@
 Name:       capi-media-image-util
 Summary:    A Image Utility library in Tizen Native API
-Version:    0.1.4
+Version:    0.1.5
 Release:    0
 Group:      Multimedia/API
 License:    Apache-2.0
