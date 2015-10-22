@@ -730,6 +730,392 @@ int image_util_encode_jpeg(const unsigned char *buffer, int width, int height, i
 int image_util_encode_jpeg_to_memory(const unsigned char *image_buffer, int width, int height, image_util_colorspace_e colorspace, int quality,  unsigned char **jpeg_buffer, unsigned int *jpeg_size);
 
 
+/**
+* @brief Creates a handle to image util decoding.
+* @since_tizen 3.0
+*
+* @details This function creates a handle to image util decoding.
+*
+* @remarks You must release the @a image util handle using image_util_decode_destroy().
+*
+* @param[out] handle A handle to image util decoding
+* @param[in] image_type The type of image for which to create decode handle.
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_OUT_OF_MEMORY Out of memory
+*
+* @see image_util_decode_destroy()
+*
+*/
+int image_util_decode_create(decode_encode_h *handle, image_util_type_e image_type);
+
+/**
+* @brief Sets the input file path from which to decode.
+* @since_tizen 3.0
+*
+* @remarks One of image_util_decode_set_input_path or image_util_decode_set_input_buffer should be set.\n
+*          http://tizen.org/privilege/mediastorage is needed if input or output path are relevant to media storage.\n
+*          http://tizen.org/privilege/externalstorage is needed if input or output path are relevant to external storage.
+*
+* @param[in] handle The handle to image util decoding
+* @param[in] path The path to input image
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+*
+* @pre image_util_decode_create().
+*
+* @see image_util_decode_create()
+* @see image_util_decode_run()
+* @see image_util_decode_destroy()
+*/
+int image_util_decode_set_input_path(decode_encode_h handle, const char *path);
+
+/**
+* @brief Sets the input buffer from which to decode.
+* @since_tizen 3.0
+*
+* @remarks One of image_util_decode_set_input_path or image_util_decode_set_input_buffer should be set.
+*
+* @param[in] handle The handle to image util decoding
+* @param[in] src_buffer The input image buffer
+* @param[in] src_size The input image buffer size
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+*
+* @pre image_util_decode_create().
+*
+* @see image_util_decode_create()
+* @see image_util_decode_run()
+* @see image_util_decode_destroy()
+*/
+int image_util_decode_set_input_buffer(decode_encode_h handle, unsigned char *src_buffer, unsigned long long src_size);
+
+/**
+* @brief Sets the output buffer to which to decode buffer will be written to.
+* @since_tizen 3.0
+*
+* @remarks Either image_util_decode_set_input_path or image_util_decode_set_input_buffer should be set.
+*
+* @param[in] handle The handle to image util decoding
+* @param[in] src_buffer The input image buffer
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+*
+* @pre image_util_decode_set_input_buffer()/image_util_decode_set_input_path().
+*
+* @see image_util_decode_create()
+* @see image_util_decode_set_input_path()
+* @see image_util_decode_set_input_buffer()
+* @see image_util_decode_run()
+* @see image_util_decode_destroy()
+*/
+int image_util_decode_set_output_buffer(decode_encode_h handle, unsigned char **dst_buffer);
+
+/**
+* @brief starts decoding of the image and fills the output buffer set using set_output_buffer().
+* @since_tizen 3.0
+*
+* @remarks The output will be stored in the pointer set to output_buffer().
+*
+* @param[in] handle The handle to image util decoding
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+*
+* @pre image_util_decode_set_output_buffer().
+*
+* @see image_util_decode_create()
+* @see image_util_decode_destroy()
+*/
+int image_util_decode_run(decode_encode_h handle);
+
+/**
+* @brief Gets the resolution of the decoded image.
+* @since_tizen 3.0
+*
+* @remarks This can be called after calling decode_run().
+*
+* @param[in] handle The handle to image util decoding
+* @param[out] width Width of the decoded image
+* @param[out] Height of the decoded image
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+*
+* @pre image_util_decode_run().
+*
+* @see image_util_decode_create()
+* @see image_util_decode_run()
+* @see image_util_decode_destroy()
+*/
+int image_util_decode_get_resolution(decode_encode_h handle, unsigned long *width, unsigned long *height);
+
+/**
+* @brief Gets the size of the decoded image.
+* @since_tizen 3.0
+*
+* @remarks This can be called after calling decode_run().
+*
+* @param[in] handle The handle to image util decoding
+* @param[out] size Size of the decoded image
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+*
+* @pre image_util_decode_run().
+*
+* @see image_util_decode_create()
+* @see image_util_decode_run()
+* @see image_util_decode_destroy()
+*/
+int image_util_decode_get_size(decode_encode_h handle, unsigned long long *size);
+
+/**
+* @brief Destroys the image handle.
+* @since_tizen 3.0
+*
+* @remarks Any image handle created should be destroyed.
+*
+* @param[in] handle The handle to image util decoding
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+*
+* @pre image_util_decode_create().
+*
+* @see image_util_decode_create()
+*/
+int image_util_decode_destroy(decode_encode_h handle);
+
+/**
+* @brief Creates a handle to image util encoding.
+* @since_tizen 3.0
+*
+* @details This function creates a handle to image util encoding.
+*
+* @remarks You must release the @a image util handle using image_util_encode_destroy().
+*
+* @param[out] handle A handle to image util encoding
+* @param[in] image_type The type of image for which to create encode handle.
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_OUT_OF_MEMORY Out of memory
+*
+* @see image_util_encode_destroy()
+*
+*/
+int image_util_encode_create(decode_encode_h *handle, image_util_type_e image_type);
+
+/**
+* @brief Sets the resolution of the encoded image.
+* @since_tizen 3.0
+*
+* @remarks This can be called before calling encode_run().
+*
+* @param[in] handle The handle to image util encoding
+* @param[in] width Width of the encoded image
+* @param[in] height Height of the encoded image
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+*
+* @pre image_util_encode_create().
+*
+* @see image_util_encode_create()
+* @see image_util_encode_run()
+* @see image_util_encode_destroy()
+*/
+int image_util_encode_set_resolution(decode_encode_h handle, unsigned long width, unsigned long height);
+
+/**
+* @brief Sets the compression value of the encoded png iamge(1~9).
+* @since_tizen 3.0
+*
+* @remarks If application does not set this, then default compression of 6 is set.
+*
+* @param[in] handle The handle to image util decoding
+* @param[in] compression The compression value valid from 1~9
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+*
+* @pre image_util_decode_create().
+*
+* @see image_util_decode_create()
+* @see image_util_decode_run()
+* @see image_util_decode_destroy()
+*/
+int image_util_encode_png_set_compression(decode_encode_h handle, image_util_png_compression_e compression);
+
+/**
+* @brief Sets the input buffer from which to encode.
+* @since_tizen 3.0
+*
+* @remarks Either image_util_encode_set_output_path or image_util_encode_set_output_buffer should be set.
+*
+* @param[in] handle The handle to image util decoding
+* @param[in] src_buffer The input image buffer
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+*
+* @pre image_util_encode_create().
+*
+* @see image_util_encode_create()
+* @see image_util_encode_run()
+* @see image_util_encode_destroy()
+*/
+int image_util_encode_set_input_buffer(decode_encode_h handle, unsigned char *src_buffer);
+
+/**
+* @brief Sets the output path to which to encoded buffer will be written to.
+* @since_tizen 3.0
+*
+* @remarks One of image_util_encode_set_output_path or image_util_encode_set_output_buffer should be set.\n
+*          http://tizen.org/privilege/mediastorage is needed if input or output path are relevant to media storage.\n
+*          http://tizen.org/privilege/externalstorage is needed if input or output path are relevant to external storage.
+*
+* @param[in] handle The handle to image util encoding
+* @param[in] path The output file path
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+*
+* @pre image_util_encode_set_input_buffer().
+*
+* @see image_util_encode_create()
+* @see image_util_encode_run()
+* @see image_util_encode_destroy()
+*/
+int image_util_encode_set_output_path(decode_encode_h handle, const char *path);
+
+/**
+* @brief Sets the output buffer to which to encoded buffer will be written to.
+* @since_tizen 3.0
+*
+* @remarks One of image_util_encode_set_output_path or image_util_encode_set_output_buffer should be set.
+*
+* @param[in] handle The handle to image util encoding
+* @param[in] dst_buffer The output image buffer
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+*
+* @pre image_util_encode_set_input_buffer().
+*
+* @see image_util_encode_create()
+* @see image_util_encode_run()
+* @see image_util_encode_destroy()
+*/
+int image_util_encode_set_output_buffer(decode_encode_h handle, unsigned char **dst_buffer);
+
+/**
+* @brief starts encoding of the image and fills the output buffer, set using set_output_buffer() or output_path().
+* @since_tizen 3.0
+*
+* @remarks The output will be stored in the pointer set to output_buffer() or output_path().
+*
+* @param[in] handle The handle to image util encoding
+* @param[out] size of the encoded image
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+*
+* @pre image_util_encode_set_output_buffer()/image_util_encode_set_output_path().
+*
+* @see image_util_encode_create()
+* @see image_util_encode_set_output_path()
+* @see image_util_encode_set_output_buffer()
+* @see image_util_encode_destroy()
+*/
+int image_util_encode_run(decode_encode_h handle, unsigned long long *size);
+
+/**
+* @brief Destroys the image handle.
+* @since_tizen 3.0
+*
+* @remarks Any image handle created should be destroyed.
+*
+* @param[in] handle The handle to image util encoding
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+*
+* @pre image_util_encode_create().
+*
+* @see image_util_encode_create()
+*/
+int image_util_encode_destroy(decode_encode_h handle);
+
 
 /**
  * @}
