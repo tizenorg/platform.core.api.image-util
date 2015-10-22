@@ -125,6 +125,48 @@ typedef struct transformation_s *transformation_h;
 typedef void(*image_util_transform_completed_cb)(media_packet_h *dst, int error_code, void *user_data);
 
 /**
+ * @brief Enumeration for Image types.
+ * @since_tizen 3.0
+ */
+typedef enum {
+    IMAGE_UTIL_PNG,  /**< Image format PNG */
+    IMAGE_UTIL_GIF,  /**< Image format GIF */
+    IMAGE_UTIL_BMP,  /**< Image format BMP */
+} image_util_type_e;
+
+/**
+ * @brief Enumeration for PNG compression values.
+ * @since_tizen 3.0
+ */
+typedef enum
+{
+    IMAGE_UTIL_COMPRESSION_0      = 0,/**< No compression */
+    IMAGE_UTIL_COMPRESSION_1      = 1,/**< Compression Level 1. Best speed */
+    IMAGE_UTIL_COMPRESSION_2      = 2,/**< Compression Level 2 */
+    IMAGE_UTIL_COMPRESSION_3      = 3,/**< Compression Level 3 */
+    IMAGE_UTIL_COMPRESSION_4      = 4,/**< Compression Level 4 */
+    IMAGE_UTIL_COMPRESSION_5      = 5,/**< Compression Level 5 */
+    IMAGE_UTIL_COMPRESSION_6      = 6,/**< Compression Level 6 */
+    IMAGE_UTIL_COMPRESSION_7      = 7,/**< Compression Level 7 */
+    IMAGE_UTIL_COMPRESSION_8      = 8,/**< Compression Level 8 */
+    IMAGE_UTIL_COMPRESSION_9      = 9 /**< Compression Level 9. Best compression */
+} image_util_png_compression_e;
+
+/**
+* @ingroup CAPI_MEDIA_IMAGE_UTIL_MODULE
+* @brief Image-util decoding handle.
+* @since_tizen 3.0
+*/
+typedef void *image_util_decode_h;
+
+/**
+* @ingroup CAPI_MEDIA_IMAGE_UTIL_MODULE
+* @brief Image-util encoding handle.
+* @since_tizen 3.0
+*/
+typedef void *image_util_encode_h;
+
+/**
  * @}
  */
 
