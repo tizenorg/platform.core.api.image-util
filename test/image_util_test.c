@@ -27,7 +27,7 @@
 #define IMAGE_FORMAT_LABEL_BUFFER_SIZE 4
 #define IMAGE_TEST_MAX_REPEAT_COUNT 100
 
-#define IMAGE_UTIL_SAFE_FREE(src)      { if(src) {free(src); src = NULL;}}
+#define IMAGE_UTIL_SAFE_FREE(src)      { if (src) {free(src); src = NULL; } }
 
 
 GMainLoop *g_loop = NULL;
@@ -42,16 +42,16 @@ GCond g_thread_cond;
 GMutex g_thread_mutex;
 
 enum {
-    CURRENT_STATE_MAIN_MENU,
-    CURRENT_STATE_SET_IMAGE_MENU,
+	CURRENT_STATE_MAIN_MENU,
+	CURRENT_STATE_SET_IMAGE_MENU,
 };
 
 enum {
-    CURRENT_STATE_SET_IMAGE_NONE,
-    CURRENT_STATE_SET_IMAGE_PATH,
-    CURRENT_STATE_SET_IMAGE_WIDTH,
-    CURRENT_STATE_SET_IMAGE_HEIGHT,
-    CURRENT_STATE_SET_IMAGE_FORMAT,
+	CURRENT_STATE_SET_IMAGE_NONE,
+	CURRENT_STATE_SET_IMAGE_PATH,
+	CURRENT_STATE_SET_IMAGE_WIDTH,
+	CURRENT_STATE_SET_IMAGE_HEIGHT,
+	CURRENT_STATE_SET_IMAGE_FORMAT,
 };
 
 int g_menu_state = CURRENT_STATE_MAIN_MENU;
@@ -399,7 +399,7 @@ static void _transform(const char *cmd)
 static void _loop_test(const int count)
 {
 	int i = 0;
-	for(i = 0; i < count; i++) {
+	for (i = 0; i < count; i++) {
 		_transform("run");
 		_set_image();
 		g_printf("<<<<< %03d >>>>>\n", i);
