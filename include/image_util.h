@@ -202,7 +202,7 @@ int image_util_transform_set_crop_area(transformation_h handle, unsigned int sta
 * @retval #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Not supported format
 *
 * @pre image_util_transform_create().\n
-            image_util_transform_set_crop_area().
+*            image_util_transform_set_crop_area().
 *
 * @see image_util_transform_create()
 * @see image_util_transform_destroy()
@@ -226,7 +226,7 @@ int image_util_transform_get_colorspace(transformation_h handle, image_util_colo
 * @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
 *
 * @pre image_util_transform_create().\n
-            image_util_transform_set_resolution().
+*            image_util_transform_set_resolution().
 *
 * @see image_util_transform_create()
 * @see image_util_transform_destroy()
@@ -249,7 +249,7 @@ int image_util_transform_get_resolution(transformation_h handle, unsigned int *w
 * @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
 *
 * @pre image_util_transform_create().\n
-            image_util_transform_set_rotation().
+*            image_util_transform_set_rotation().
 *
 * @see image_util_transform_create()
 * @see image_util_transform_destroy()
@@ -275,7 +275,7 @@ int image_util_transform_get_rotation(transformation_h handle, image_util_rotati
 * @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
 *
 * @pre image_util_transform_create().\n
-            image_util_transform_set_crop_area().
+*            image_util_transform_set_crop_area().
 *
 * @see image_util_transform_create()
 * @see image_util_transform_destroy()
@@ -729,6 +729,27 @@ int image_util_encode_jpeg(const unsigned char *buffer, int width, int height, i
 */
 int image_util_encode_jpeg_to_memory(const unsigned char *image_buffer, int width, int height, image_util_colorspace_e colorspace, int quality,  unsigned char **jpeg_buffer, unsigned int *jpeg_size);
 
+/**
+* @brief Extracts representative color from an image buffer
+* @since_tizen 3.0
+* @remarks @a image_buffer should be RGB888 colorspace.
+*
+* @param[in] image_buffer The original image buffer
+* @param[in] width The image width
+* @param[in] height The image height
+* @param[out] rgb_r The red color in RGB color space
+* @param[out] rgb_g The green color in RGB color space
+* @param[out] rgb_b The blue color in RGB color space
+*
+* @return 0 on success,
+*           otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+*
+*/
+int image_util_extract_color_from_memory(const unsigned char *image_buffer, int width, int height, unsigned char *rgb_r, unsigned char *rgb_g, unsigned char *rgb_b);
 
 
 /**
