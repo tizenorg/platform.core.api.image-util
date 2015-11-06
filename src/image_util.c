@@ -18,6 +18,7 @@
 
 #include <mm_util_imgp.h>
 #include <mm_util_jpeg.h>
+#include <mm_util_imgcv.h>
 #include <image_util.h>
 #include <image_util_private.h>
 #include <stdio.h>
@@ -78,30 +79,30 @@ static int _convert_image_util_error_code(const char *func, int code)
 	int ret = IMAGE_UTIL_ERROR_INVALID_OPERATION;
 	char *errorstr = NULL;
 	switch (code) {
-		case MM_UTIL_ERROR_NONE:
-			ret = IMAGE_UTIL_ERROR_NONE;
-			errorstr = strdup("ERROR_NONE");
-			break;
-		case MM_UTIL_ERROR_NO_SUCH_FILE:
-			ret = IMAGE_UTIL_ERROR_NO_SUCH_FILE;
-			errorstr = strdup("NO_SUCH_FILE");
-			break;
-		case MM_UTIL_ERROR_INVALID_PARAMETER:
-			ret = IMAGE_UTIL_ERROR_INVALID_PARAMETER;
-			errorstr = strdup("INVALID_PARAMETER");
-			break;
-		case MM_UTIL_ERROR_NOT_SUPPORTED_FORMAT:
-			ret = IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT;
-			errorstr = strdup("NOT_SUPPORTED_FORMAT");
-			break;
-		case MM_UTIL_ERROR_OUT_OF_MEMORY:
-			ret = IMAGE_UTIL_ERROR_OUT_OF_MEMORY;
-			errorstr = strdup("OUT_OF_MEMORY");
-			break;
-		case MM_UTIL_ERROR_INVALID_OPERATION:
-		default:
-			ret = IMAGE_UTIL_ERROR_INVALID_OPERATION;
-			errorstr = strdup("INVALID_OPERATION");
+	case MM_UTIL_ERROR_NONE:
+		ret = IMAGE_UTIL_ERROR_NONE;
+		errorstr = strdup("ERROR_NONE");
+		break;
+	case MM_UTIL_ERROR_NO_SUCH_FILE:
+		ret = IMAGE_UTIL_ERROR_NO_SUCH_FILE;
+		errorstr = strdup("NO_SUCH_FILE");
+		break;
+	case MM_UTIL_ERROR_INVALID_PARAMETER:
+		ret = IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+		errorstr = strdup("INVALID_PARAMETER");
+		break;
+	case MM_UTIL_ERROR_NOT_SUPPORTED_FORMAT:
+		ret = IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT;
+		errorstr = strdup("NOT_SUPPORTED_FORMAT");
+		break;
+	case MM_UTIL_ERROR_OUT_OF_MEMORY:
+		ret = IMAGE_UTIL_ERROR_OUT_OF_MEMORY;
+		errorstr = strdup("OUT_OF_MEMORY");
+		break;
+	case MM_UTIL_ERROR_INVALID_OPERATION:
+	default:
+		ret = IMAGE_UTIL_ERROR_INVALID_OPERATION;
+		errorstr = strdup("INVALID_OPERATION");
 
 	}
 
@@ -113,23 +114,23 @@ static int _convert_image_util_error_code(const char *func, int code)
 static image_util_error_e _image_util_error_convert(int error)
 {
 	switch (error) {
-		case MM_UTIL_ERROR_NONE:
-			image_util_debug("Error None");
-			return IMAGE_UTIL_ERROR_NONE;
-		case MM_UTIL_ERROR_INVALID_PARAMETER:
-			image_util_error("INVALID_PARAMETER(0x%08x)", IMAGE_UTIL_ERROR_INVALID_PARAMETER);
-			return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
-		case MM_UTIL_ERROR_NOT_SUPPORTED_FORMAT:
-			image_util_error("NOT_SUPPORTED_FORMAT(0x%08x)", IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT);
-			return IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT;
-		case MM_UTIL_ERROR_OUT_OF_MEMORY:
-			image_util_error("OUT_OF_MEMORY(0x%08x)", IMAGE_UTIL_ERROR_OUT_OF_MEMORY);
-			return IMAGE_UTIL_ERROR_OUT_OF_MEMORY;
-			break;
-		case MM_UTIL_ERROR_INVALID_OPERATION:
-		default:
-			image_util_error("INVALID_OPERATION(0x%08x)", error);
-			return IMAGE_UTIL_ERROR_INVALID_OPERATION;
+	case MM_UTIL_ERROR_NONE:
+		image_util_debug("Error None");
+		return IMAGE_UTIL_ERROR_NONE;
+	case MM_UTIL_ERROR_INVALID_PARAMETER:
+		image_util_error("INVALID_PARAMETER(0x%08x)", IMAGE_UTIL_ERROR_INVALID_PARAMETER);
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	case MM_UTIL_ERROR_NOT_SUPPORTED_FORMAT:
+		image_util_error("NOT_SUPPORTED_FORMAT(0x%08x)", IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT);
+		return IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT;
+	case MM_UTIL_ERROR_OUT_OF_MEMORY:
+		image_util_error("OUT_OF_MEMORY(0x%08x)", IMAGE_UTIL_ERROR_OUT_OF_MEMORY);
+		return IMAGE_UTIL_ERROR_OUT_OF_MEMORY;
+		break;
+	case MM_UTIL_ERROR_INVALID_OPERATION:
+	default:
+		image_util_error("INVALID_OPERATION(0x%08x)", error);
+		return IMAGE_UTIL_ERROR_INVALID_OPERATION;
 	}
 }
 
@@ -733,4 +734,20 @@ int image_util_encode_jpeg_to_memory(const unsigned char *image_buffer, int widt
 		*jpeg_size = (unsigned int)isize;
 
 	return _convert_image_util_error_code(__func__, err);
+}
+
+int image_util_extract_color_from_memory(const unsigned char *image_buffer, int width, int height, unsigned char *rgb_r, unsigned char *rgb_g, unsigned char *rgb_b)
+{
+	int ret = MM_UTIL_ERROR_NONE;
+
+	image_util_retvm_if((image_buffer == NULL), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "image_buffer     is null");
+
+	unsigned char r_color, g_color, b_color;
+	ret = mm_util_cv_extract_representative_color((void *)image_buffer, width, height, &r_color, &    g_color, &b_color);
+
+	*rgb_r = r_color;
+	*rgb_g = g_color;
+	*rgb_b = b_color;
+
+	return _convert_image_util_error_code(__func__, ret);
 }

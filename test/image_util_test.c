@@ -80,46 +80,46 @@ _image_util_mapping_imgp_format_to_mime(image_util_colorspace_e colorspace)
 	media_format_mimetype_e mimetype = -1;
 
 	switch (colorspace) {
-		case IMAGE_UTIL_COLORSPACE_NV12:
-			mimetype = MEDIA_FORMAT_NV12;
-			break;
-		case IMAGE_UTIL_COLORSPACE_NV16:
-			mimetype = MEDIA_FORMAT_NV16;
-			break;
-		case IMAGE_UTIL_COLORSPACE_YUYV:
-			mimetype = MEDIA_FORMAT_YUYV;
-			break;
-		case IMAGE_UTIL_COLORSPACE_UYVY:
-			mimetype = MEDIA_FORMAT_UYVY;
-			break;
-		case IMAGE_UTIL_COLORSPACE_YUV422:
-			mimetype = MEDIA_FORMAT_422P;
-			break;
-		case IMAGE_UTIL_COLORSPACE_I420:
-			mimetype = MEDIA_FORMAT_I420;
-			break;
-		case IMAGE_UTIL_COLORSPACE_NV21:
-			mimetype = MEDIA_FORMAT_YV12;
-			break;
-		case IMAGE_UTIL_COLORSPACE_RGB565:
-			mimetype = MEDIA_FORMAT_RGB565;
-			break;
-		case IMAGE_UTIL_COLORSPACE_RGB888:
-			mimetype = MEDIA_FORMAT_RGB888;
-			break;
-		case IMAGE_UTIL_COLORSPACE_RGBA8888:
-			mimetype = MEDIA_FORMAT_RGBA;
-			break;
-		case IMAGE_UTIL_COLORSPACE_ARGB8888:
-			mimetype = MEDIA_FORMAT_ARGB;
-			break;
-		case IMAGE_UTIL_COLORSPACE_BGRA8888:
-		case IMAGE_UTIL_COLORSPACE_BGRX8888:
-		case IMAGE_UTIL_COLORSPACE_NV61:
-		default:
-			mimetype = -1;
-			g_printf("Not Supported Format");
-			break;
+	case IMAGE_UTIL_COLORSPACE_NV12:
+		mimetype = MEDIA_FORMAT_NV12;
+		break;
+	case IMAGE_UTIL_COLORSPACE_NV16:
+		mimetype = MEDIA_FORMAT_NV16;
+		break;
+	case IMAGE_UTIL_COLORSPACE_YUYV:
+		mimetype = MEDIA_FORMAT_YUYV;
+		break;
+	case IMAGE_UTIL_COLORSPACE_UYVY:
+		mimetype = MEDIA_FORMAT_UYVY;
+		break;
+	case IMAGE_UTIL_COLORSPACE_YUV422:
+		mimetype = MEDIA_FORMAT_422P;
+		break;
+	case IMAGE_UTIL_COLORSPACE_I420:
+		mimetype = MEDIA_FORMAT_I420;
+		break;
+	case IMAGE_UTIL_COLORSPACE_NV21:
+		mimetype = MEDIA_FORMAT_YV12;
+		break;
+	case IMAGE_UTIL_COLORSPACE_RGB565:
+		mimetype = MEDIA_FORMAT_RGB565;
+		break;
+	case IMAGE_UTIL_COLORSPACE_RGB888:
+		mimetype = MEDIA_FORMAT_RGB888;
+		break;
+	case IMAGE_UTIL_COLORSPACE_RGBA8888:
+		mimetype = MEDIA_FORMAT_RGBA;
+		break;
+	case IMAGE_UTIL_COLORSPACE_ARGB8888:
+		mimetype = MEDIA_FORMAT_ARGB;
+		break;
+	case IMAGE_UTIL_COLORSPACE_BGRA8888:
+	case IMAGE_UTIL_COLORSPACE_BGRX8888:
+	case IMAGE_UTIL_COLORSPACE_NV61:
+	default:
+		mimetype = -1;
+		g_printf("Not Supported Format");
+		break;
 	}
 
 	g_printf("imgp fmt: %d mimetype fmt: %d", colorspace, mimetype);
@@ -281,18 +281,16 @@ static void _create()
 	int ret = 0;
 	if (g_handle != NULL) {
 		ret = image_util_transform_destroy(g_handle);
-		if (ret != IMAGE_UTIL_ERROR_NONE) {
+		if (ret != IMAGE_UTIL_ERROR_NONE)
 			g_printf("[%d]Error image_util_transform_destroy [%d]\n", __LINE__, ret);
-		} else {
+		else
 			g_printf("[%d]Success image_util_transform_destroy [%d]\n", __LINE__, ret);
-		}
 	}
 	ret = image_util_transform_create(&g_handle);
-	if (ret != IMAGE_UTIL_ERROR_NONE) {
+	if (ret != IMAGE_UTIL_ERROR_NONE)
 		g_printf("[%d]Error image_util_transform_create [%d]\n", __LINE__, ret);
-	} else {
+	else
 		g_printf("[%d]Success image_util_transform_create [%d]\n", __LINE__, ret);
-	}
 }
 
 static void _set_image()
@@ -303,11 +301,10 @@ static void _set_image()
 		g_printf("[%d]Success source packet is destroyed \n", __LINE__);
 	}
 	ret = create_media_packet();
-	if (ret == MM_ERROR_NONE) {
+	if (ret == MM_ERROR_NONE)
 		g_printf("Success - Create_media_packet\n");
-	} else {
+	else
 		g_printf("Error - Create_media_packet\n");
-	}
 }
 
 static void _destroy()
@@ -316,11 +313,10 @@ static void _destroy()
 
 	if (g_handle) {
 		ret = image_util_transform_destroy(g_handle);
-		if (ret != IMAGE_UTIL_ERROR_NONE) {
+		if (ret != IMAGE_UTIL_ERROR_NONE)
 			g_printf("[%d]Error image_util_transform_destroy [%d]\n", __LINE__, ret);
-		} else {
+		else
 			g_printf("[%d]Success image_util_transform_destroy [%d]\n", __LINE__, ret);
-		}
 	} else {
 		g_printf("[%d]Error handle was already destroyed \n", __LINE__);
 	}
@@ -352,8 +348,6 @@ static void _transform(const char *cmd)
 	if (!strcmp("resize", cmd)) {
 		width = g_width/2;
 		height = g_height/2;
-//		width = g_width;
-//		height = g_height;
 
 		ret = image_util_transform_set_resolution(g_handle, width, height);
 		if (ret != IMAGE_UTIL_ERROR_NONE) {
