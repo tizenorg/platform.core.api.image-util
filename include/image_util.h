@@ -746,6 +746,7 @@ int image_util_encode_jpeg_to_memory(const unsigned char *image_buffer, int widt
 *
 * @retval #IMAGE_UTIL_ERROR_NONE Successful
 * @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_OUT_OF_MEMORY out of memory
 * @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
 *
 */
