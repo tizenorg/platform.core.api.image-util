@@ -20,6 +20,7 @@
 #include <image_util_type.h>
 #include <dlog.h>
 #include <stdlib.h>
+#include <glib.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -84,6 +85,37 @@ typedef struct {
 	bool set_crop;
 } transformation_s;
 
+typedef struct {
+	void *user_data;
+	image_util_decode_completed_cb image_decode_completed_cb;
+} decode_cb_s;
+
+typedef struct {
+	void *user_data;
+	image_util_encode_completed_cb image_encode_completed_cb;
+} encode_cb_s;
+
+typedef struct {
+	image_util_type_e image_type;
+	void *src_buffer;
+	unsigned long long src_size;
+	void **dst_buffer;
+	unsigned long long dst_size;
+	const char *path;
+	MMHandleType image_h;
+	unsigned long width;
+	unsigned long height;
+	bool is_decode;
+	decode_cb_s *_decode_cb;
+	encode_cb_s *_encode_cb;
+
+	/* for multi instance */
+	GCond thread_cond;
+	GMutex thread_mutex;
+	GThread *thread;
+
+	bool is_finish;
+} decode_encode_s;
 
 /**
 * @}

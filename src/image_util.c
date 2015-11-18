@@ -19,6 +19,8 @@
 #include <mm_util_imgp.h>
 #include <mm_util_jpeg.h>
 #include <mm_util_imgcv.h>
+#include <mm_util_png.h>
+#include <mm_util_gif.h>
 #include <image_util.h>
 #include <image_util_private.h>
 #include <stdio.h>
@@ -750,4 +752,842 @@ int image_util_extract_color_from_memory(const unsigned char *image_buffer, int 
 	*rgb_b = b_color;
 
 	return _convert_image_util_error_code(__func__, ret);
+}
+
+static int _image_util_decode_create_png_handle(decode_encode_s * handle)
+{
+	int err = MM_UTIL_ERROR_NONE;
+
+	image_util_retvm_if((handle == NULL), MM_UTIL_ERROR_INVALID_PARAMETER, "Invalid Handle");
+
+	mm_util_png_data *_handle = (mm_util_png_data *) calloc(1, sizeof(mm_util_png_data));
+	image_util_retvm_if((_handle == NULL), MM_UTIL_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY(0x%08x)", MM_UTIL_ERROR_OUT_OF_MEMORY);
+
+	mm_util_init_decode_png(_handle);
+
+	handle->image_h = (MMHandleType) _handle;
+
+	return err;
+}
+
+static int _image_util_decode_create_gif_handle(decode_encode_s * handle)
+{
+	int err = MM_UTIL_ERROR_NONE;
+
+	image_util_retvm_if((handle == NULL), MM_UTIL_ERROR_INVALID_PARAMETER, "Invalid Handle");
+
+	mm_util_gif_data *_handle = (mm_util_gif_data *) calloc(1, sizeof(mm_util_gif_data));
+	image_util_retvm_if((_handle == NULL), MM_UTIL_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY(0x%08x)", MM_UTIL_ERROR_OUT_OF_MEMORY);
+
+	handle->image_h = (MMHandleType) _handle;
+
+	return err;
+}
+
+int image_util_decode_create(image_util_type_e image_type, image_util_decode_h * handle)
+{
+	int err = MM_UTIL_ERROR_NONE;
+
+	image_util_debug("image_util_decode_create");
+
+	image_util_retvm_if((handle == NULL), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid Handle");
+
+	decode_encode_s *_handle = (decode_encode_s *) calloc(1, sizeof(decode_encode_s));
+	image_util_retvm_if((_handle == NULL), IMAGE_UTIL_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY(0x%08x)", IMAGE_UTIL_ERROR_OUT_OF_MEMORY);
+
+	_handle->image_type = image_type;
+	_handle->src_buffer = NULL;
+	_handle->dst_buffer = NULL;
+	_handle->path = NULL;
+	_handle->image_h = 0;
+	_handle->is_decode = TRUE;
+
+	switch (image_type) {
+	case IMAGE_UTIL_PNG:
+		err = _image_util_decode_create_png_handle(_handle);
+		break;
+	case IMAGE_UTIL_GIF:
+		err = _image_util_decode_create_gif_handle(_handle);
+		break;
+	default:
+		err = MM_UTIL_ERROR_INVALID_PARAMETER;
+		break;
+	}
+
+	if (err != MM_UTIL_ERROR_NONE) {
+		image_util_error("Error - create image handle");
+		IMAGE_UTIL_SAFE_FREE(_handle);
+		return _convert_image_util_error_code(__func__, err);
+	}
+
+	*handle = (image_util_decode_h) _handle;
+
+	return _convert_image_util_error_code(__func__, err);
+}
+
+int image_util_decode_set_input_path(image_util_decode_h handle, const char *path)
+{
+	int err = IMAGE_UTIL_ERROR_NONE;
+	decode_encode_s *_handle = (decode_encode_s *) handle;
+
+	if (_handle == NULL || _handle->is_decode == FALSE) {
+		image_util_error("Invalid Handle");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+	image_util_retvm_if((path == NULL || strlen(path) == 0), IMAGE_UTIL_ERROR_NO_SUCH_FILE, "Invalid path");
+
+	if (_handle->src_buffer)
+		_handle->src_buffer = NULL;
+
+	_handle->path = path;
+
+	return err;
+}
+
+int image_util_decode_set_input_buffer(image_util_decode_h handle, const unsigned char *src_buffer, unsigned long long src_size)
+{
+	int err = IMAGE_UTIL_ERROR_NONE;
+	decode_encode_s *_handle = (decode_encode_s *) handle;
+
+	if (_handle == NULL || _handle->is_decode == FALSE) {
+		image_util_error("Invalid Handle");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+	if (src_buffer == NULL || src_size == 0) {
+		image_util_error("Invalid input buffer");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+
+	if (_handle->path)
+		_handle->path = NULL;
+
+	_handle->src_buffer = (void *)src_buffer;
+	_handle->src_size = src_size;
+
+	return err;
+}
+
+int image_util_decode_set_output_buffer(image_util_decode_h handle, unsigned char **dst_buffer)
+{
+	int err = IMAGE_UTIL_ERROR_NONE;
+	decode_encode_s *_handle = (decode_encode_s *) handle;
+
+	if (_handle == NULL || _handle->is_decode == FALSE) {
+		image_util_error("Invalid Handle");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+	if (dst_buffer == NULL) {
+		image_util_error("Invalid output buffer");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+
+	_handle->dst_buffer = (void **)dst_buffer;
+
+	return err;
+}
+
+static int _image_util_decode_internal(decode_encode_s * _handle)
+{
+	int err = MM_UTIL_ERROR_NONE;
+
+	switch (_handle->image_type) {
+	case IMAGE_UTIL_PNG:
+		{
+			mm_util_png_data *png_data;
+
+			png_data = (mm_util_png_data *) _handle->image_h;
+			if (png_data == NULL) {
+				image_util_error("Invalid png data");
+				return MM_UTIL_ERROR_INVALID_PARAMETER;
+			}
+
+			if (_handle->path)
+				err = mm_util_decode_from_png_file(png_data, _handle->path);
+			else
+				err = mm_util_decode_from_png_memory(png_data, &_handle->src_buffer, _handle->src_size);
+
+			if (err == MM_UTIL_ERROR_NONE) {
+				*(_handle->dst_buffer) = png_data->data;
+				_handle->dst_size = png_data->size;
+				_handle->width = png_data->width;
+				_handle->height = png_data->height;
+			}
+		}
+		break;
+	case IMAGE_UTIL_GIF:
+		{
+			mm_util_gif_data *gif_data;
+
+			gif_data = (mm_util_gif_data *) _handle->image_h;
+			if (gif_data == NULL) {
+				image_util_error("Invalid gif data");
+				return MM_UTIL_ERROR_INVALID_PARAMETER;
+			}
+
+			if (_handle->path)
+				err = mm_util_decode_from_gif_file(gif_data, _handle->path);
+			else
+				err = mm_util_decode_from_gif_memory(gif_data, &_handle->src_buffer);
+
+			if (err == MM_UTIL_ERROR_NONE) {
+				*(_handle->dst_buffer) = gif_data->frames[0].data;
+				_handle->dst_size = gif_data->size;
+				_handle->width = gif_data->width;
+				_handle->height = gif_data->height;
+			}
+		}
+		break;
+	default:
+		err = MM_UTIL_ERROR_INVALID_PARAMETER;
+		break;
+	}
+
+	return err;
+}
+
+int image_util_decode_run(image_util_decode_h handle, unsigned long *width, unsigned long *height, unsigned long long *size)
+{
+	int err = MM_UTIL_ERROR_NONE;
+	decode_encode_s *_handle = (decode_encode_s *) handle;
+
+	if (_handle == NULL || _handle->is_decode == FALSE) {
+		image_util_error("Invalid Handle");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+	if ((_handle->path == NULL && _handle->src_buffer == NULL) || _handle->dst_buffer == NULL) {
+		image_util_error("Invalid input/output");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+
+	err = _image_util_decode_internal(_handle);
+
+	if (err != MM_UTIL_ERROR_NONE) {
+		image_util_error("Error - decode run");
+		return _convert_image_util_error_code(__func__, err);
+	}
+
+	if (width)
+		*width = _handle->width;
+	if (height)
+		*height = _handle->height;
+	if (size)
+		*size = _handle->dst_size;
+
+	return _convert_image_util_error_code(__func__, err);
+}
+
+gpointer _image_util_decode_thread(gpointer data)
+{
+	decode_encode_s *_handle = (decode_encode_s *) data;
+	int err = MM_UTIL_ERROR_NONE;
+	gint64 end_time = 0;
+
+	if (!_handle) {
+		image_util_error("[ERROR] - handle");
+		return NULL;
+	}
+
+	while (!_handle->is_finish) {
+		end_time = g_get_monotonic_time() + 1 * G_TIME_SPAN_SECOND;
+		image_util_debug("waiting...");
+		g_mutex_lock(&(_handle->thread_mutex));
+		g_cond_wait_until(&(_handle->thread_cond), &(_handle->thread_mutex), end_time);
+		image_util_debug("<=== get run decode thread signal");
+		g_mutex_unlock(&(_handle->thread_mutex));
+
+		if (_handle->is_finish) {
+			image_util_debug("exit loop");
+			break;
+		}
+
+		err = _image_util_decode_internal(_handle);
+		if(err == MM_UTIL_ERROR_NONE) {
+			image_util_debug("Success - decode_internal");
+		} else{
+			image_util_error("Error - decode_internal");
+		}
+		if (_handle->_decode_cb) {
+			image_util_debug("completed_cb");
+			_handle->is_finish = TRUE;
+			_handle->_decode_cb->image_decode_completed_cb(_convert_image_util_error_code(__func__, err), _handle->_decode_cb->user_data, _handle->width, _handle->height, _handle->dst_size);
+		}
+	}
+
+	image_util_debug("exit thread");
+
+	return NULL;
+}
+
+static int _image_util_decode_create_thread(decode_encode_s * handle)
+{
+	int err = MM_UTIL_ERROR_NONE;
+
+	image_util_retvm_if((handle == NULL), MM_UTIL_ERROR_INVALID_PARAMETER, "Invalid Handle");
+
+	g_mutex_init(&(handle->thread_mutex));
+
+	g_cond_init(&(handle->thread_cond));
+
+	/*create threads */
+	handle->thread = g_thread_new("decode_thread", (GThreadFunc) _image_util_decode_thread, (gpointer) handle);
+	if (!handle->thread) {
+		image_util_error("ERROR - create thread");
+		g_mutex_clear(&(handle->thread_mutex));
+
+		g_cond_clear(&(handle->thread_cond));
+		return MM_UTIL_ERROR_INVALID_OPERATION;
+	}
+
+	return err;
+}
+
+int image_util_decode_run_async(image_util_decode_h handle, image_util_decode_completed_cb completed_cb, void *user_data)
+{
+	int err = MM_UTIL_ERROR_NONE;
+	decode_encode_s *_handle = (decode_encode_s *) handle;
+
+	if (_handle == NULL || _handle->is_decode == FALSE) {
+		image_util_error("Invalid Handle");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+	if ((_handle->path == NULL && _handle->src_buffer == NULL) || _handle->dst_buffer == NULL) {
+		image_util_error("Invalid input/output");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+	image_util_retvm_if((completed_cb == NULL), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid callback");
+
+	if (_handle->_decode_cb != NULL) {
+		IMAGE_UTIL_SAFE_FREE(_handle->_decode_cb);
+		_handle->_decode_cb = NULL;
+	}
+	_handle->_decode_cb = (decode_cb_s *) calloc(1, sizeof(decode_cb_s));
+	image_util_retvm_if((_handle->_decode_cb == NULL), IMAGE_UTIL_ERROR_OUT_OF_MEMORY, "Out of memory");
+
+	_handle->_decode_cb->user_data = user_data;
+	_handle->_decode_cb->image_decode_completed_cb = completed_cb;
+
+	err = _image_util_decode_create_thread(_handle);
+
+	return _convert_image_util_error_code(__func__, err);
+}
+
+int image_util_decode_destroy(image_util_decode_h handle)
+{
+	int err = IMAGE_UTIL_ERROR_NONE;
+	decode_encode_s *_handle = (decode_encode_s *) handle;
+
+	image_util_debug("image_util_encode_png_destroy");
+
+	if (_handle == NULL || _handle->is_decode == FALSE) {
+		image_util_error("Invalid Handle");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+
+	switch (_handle->image_type) {
+	case IMAGE_UTIL_PNG:
+		{
+			mm_util_png_data *png_data;
+
+			png_data = (mm_util_png_data *) _handle->image_h;
+			if (png_data == NULL) {
+				image_util_error("Invalid png data");
+				return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+			}
+			IMAGE_UTIL_SAFE_FREE(png_data);
+		}
+		break;
+	case IMAGE_UTIL_GIF:
+		{
+			mm_util_gif_data *gif_data;
+
+			gif_data = (mm_util_gif_data *) _handle->image_h;
+			if (gif_data == NULL) {
+				image_util_error("Invalid gif data");
+				return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+			}
+			IMAGE_UTIL_SAFE_FREE(gif_data);
+		}
+		break;
+	default:
+		err = IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+		break;
+	}
+
+	/* g_thread_exit(handle->thread); */
+	if (_handle->thread) {
+		_handle->is_finish = TRUE;
+		g_mutex_lock(&(_handle->thread_mutex));
+		g_cond_signal(&(_handle->thread_cond));
+		image_util_debug("===> send signal(finish) to decode_thread");
+		g_mutex_unlock(&(_handle->thread_mutex));
+
+		g_thread_join(_handle->thread);
+
+		g_mutex_clear(&(_handle->thread_mutex));
+
+		g_cond_clear(&(_handle->thread_cond));
+	}
+
+	IMAGE_UTIL_SAFE_FREE(_handle);
+
+	return err;
+}
+
+static int _image_util_encode_create_png_handle(decode_encode_s * handle)
+{
+	int err = MM_UTIL_ERROR_NONE;
+
+	image_util_retvm_if((handle == NULL), MM_UTIL_ERROR_INVALID_PARAMETER, "Invalid Handle");
+
+	mm_util_png_data *_handle = (mm_util_png_data *) calloc(1, sizeof(mm_util_png_data));
+	image_util_retvm_if((_handle == NULL), MM_UTIL_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY(0x%08x)", MM_UTIL_ERROR_OUT_OF_MEMORY);
+
+	mm_util_init_encode_png(_handle);
+
+	handle->image_h = (MMHandleType) _handle;
+
+	return err;
+}
+
+static int _image_util_encode_create_gif_handle(decode_encode_s * handle)
+{
+	int err = MM_UTIL_ERROR_NONE;
+
+	image_util_retvm_if((handle == NULL), MM_UTIL_ERROR_INVALID_PARAMETER, "Invalid Handle");
+
+	mm_util_gif_data *_handle = (mm_util_gif_data *) calloc(1, sizeof(mm_util_gif_data));
+	image_util_retvm_if((_handle == NULL), MM_UTIL_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY(0x%08x)", MM_UTIL_ERROR_OUT_OF_MEMORY);
+
+	_handle->frames = (mm_util_gif_frame_data *) calloc(1, sizeof(mm_util_gif_frame_data));
+	image_util_retvm_if((_handle->frames == NULL), MM_UTIL_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY(0x%08x)", MM_UTIL_ERROR_OUT_OF_MEMORY);
+
+	mm_util_gif_encode_set_image_count(_handle, 1);
+	handle->image_h = (MMHandleType) _handle;
+
+	return err;
+}
+
+int image_util_encode_create(image_util_type_e image_type, image_util_encode_h * handle)
+{
+	int err = MM_UTIL_ERROR_NONE;
+
+	image_util_debug("image_util_encode_create");
+
+	image_util_retvm_if((handle == NULL), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid Handle");
+
+	decode_encode_s *_handle = (decode_encode_s *) calloc(1, sizeof(decode_encode_s));
+	image_util_retvm_if((_handle == NULL), IMAGE_UTIL_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY(0x%08x)", IMAGE_UTIL_ERROR_OUT_OF_MEMORY);
+
+	_handle->image_type = image_type;
+	_handle->src_buffer = NULL;
+	_handle->dst_buffer = NULL;
+	_handle->path = NULL;
+	_handle->image_h = 0;
+	_handle->is_decode = FALSE;
+
+	switch (image_type) {
+	case IMAGE_UTIL_PNG:
+		err = _image_util_encode_create_png_handle(_handle);
+		break;
+	case IMAGE_UTIL_GIF:
+		err = _image_util_encode_create_gif_handle(_handle);
+		break;
+	default:
+		err = MM_UTIL_ERROR_INVALID_PARAMETER;
+		break;
+	}
+
+	if (err != MM_UTIL_ERROR_NONE) {
+		image_util_error("Error - create image handle");
+		IMAGE_UTIL_SAFE_FREE(_handle);
+		return _convert_image_util_error_code(__func__, err);
+	}
+
+	*handle = (image_util_encode_h) _handle;
+
+	return _convert_image_util_error_code(__func__, err);
+}
+
+int image_util_encode_set_resolution(image_util_encode_h handle, unsigned long width, unsigned long height)
+{
+	int err = IMAGE_UTIL_ERROR_NONE;
+	decode_encode_s *_handle = (decode_encode_s *) handle;
+
+	if (_handle == NULL || _handle->is_decode == TRUE) {
+		image_util_error("Invalid Handle");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+	image_util_retvm_if((_image_util_check_resolution(width, height) == false), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid resolution");
+
+	switch (_handle->image_type) {
+	case IMAGE_UTIL_PNG:
+		{
+			mm_util_png_data *png_data;
+
+			png_data = (mm_util_png_data *) _handle->image_h;
+			if (png_data == NULL) {
+				image_util_error("Invalid png data");
+				return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+			}
+			mm_util_png_encode_set_width(png_data, width);
+			mm_util_png_encode_set_height(png_data, height);
+		}
+		break;
+	case IMAGE_UTIL_GIF:
+		{
+			mm_util_gif_data *gif_data;
+
+			gif_data = (mm_util_gif_data *) _handle->image_h;
+			if (gif_data == NULL) {
+				image_util_error("Invalid gif data");
+				return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+			}
+			mm_util_gif_encode_set_width(gif_data, width);
+			mm_util_gif_encode_set_height(gif_data, height);
+		}
+		break;
+	default:
+		err = IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+		break;
+	}
+
+	_handle->width = width;
+	_handle->height = height;
+
+	return err;
+}
+
+int image_util_encode_set_png_compression(image_util_encode_h handle, image_util_png_compression_e compression)
+{
+	int err = IMAGE_UTIL_ERROR_NONE;
+	decode_encode_s *_handle = (decode_encode_s *) handle;
+	mm_util_png_data *png_data;
+
+	if (_handle == NULL || _handle->is_decode == TRUE) {
+		image_util_error("Invalid Handle");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+	if (_handle->image_type != IMAGE_UTIL_PNG) {
+		image_util_error("Wrong image format");
+		return IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT;
+	}
+	png_data = (mm_util_png_data *) _handle->image_h;
+	if (png_data == NULL) {
+		image_util_error("Invalid png data");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+
+	mm_util_png_encode_set_compression_level(png_data, compression);
+
+	return err;
+}
+
+int image_util_encode_set_input_buffer(image_util_encode_h handle, const unsigned char *src_buffer)
+{
+	int err = IMAGE_UTIL_ERROR_NONE;
+	decode_encode_s *_handle = (decode_encode_s *) handle;
+
+	if (_handle == NULL || _handle->is_decode == TRUE) {
+		image_util_error("Invalid Handle");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+	if (src_buffer == NULL) {
+		image_util_error("Invalid input buffer");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+
+	_handle->src_buffer = (void *)src_buffer;
+
+	return err;
+}
+
+int image_util_encode_set_output_path(image_util_encode_h handle, const char *path)
+{
+	int err = IMAGE_UTIL_ERROR_NONE;
+	decode_encode_s *_handle = (decode_encode_s *) handle;
+
+	if (_handle == NULL || _handle->is_decode == TRUE) {
+		image_util_error("Invalid Handle");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+	image_util_retvm_if((path == NULL || strlen(path) == 0), IMAGE_UTIL_ERROR_NO_SUCH_FILE, "Invalid path");
+
+	if (_handle->dst_buffer)
+		_handle->dst_buffer = NULL;
+
+	_handle->path = path;
+
+	return err;
+}
+
+int image_util_encode_set_output_buffer(image_util_encode_h handle, unsigned char **dst_buffer)
+{
+	int err = IMAGE_UTIL_ERROR_NONE;
+	decode_encode_s *_handle = (decode_encode_s *) handle;
+
+	if (_handle == NULL || _handle->is_decode == TRUE) {
+		image_util_error("Invalid Handle");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+	if (dst_buffer == NULL) {
+		image_util_error("Invalid output buffer");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+
+	if (_handle->path)
+		_handle->path = NULL;
+
+	_handle->dst_buffer = (void **)dst_buffer;
+
+	return err;
+}
+
+static int _image_util_encode_internal(decode_encode_s * _handle)
+{
+	int err = MM_UTIL_ERROR_NONE;
+
+	switch (_handle->image_type) {
+	case IMAGE_UTIL_PNG:
+		{
+			mm_util_png_data *png_data;
+
+			png_data = (mm_util_png_data *) _handle->image_h;
+			if (png_data == NULL) {
+				image_util_error("Invalid png data");
+				return MM_UTIL_ERROR_INVALID_PARAMETER;
+			}
+
+			if (_handle->path)
+				err = mm_util_encode_to_png_file(&(_handle->src_buffer), png_data, _handle->path);
+			else
+				err = mm_util_encode_to_png_memory(&(_handle->src_buffer), png_data);
+
+			if (err == MM_UTIL_ERROR_NONE) {
+				if (_handle->dst_buffer)
+					*(_handle->dst_buffer) = png_data->data;
+				_handle->dst_size = png_data->size;
+				_handle->width = png_data->width;
+				_handle->height = png_data->height;
+			}
+		}
+		break;
+	case IMAGE_UTIL_GIF:
+		{
+			mm_util_gif_data *gif_data;
+			void *dst_buffer = NULL;
+
+			gif_data = (mm_util_gif_data *) _handle->image_h;
+			if (gif_data == NULL) {
+				image_util_error("Invalid png data");
+				return MM_UTIL_ERROR_INVALID_PARAMETER;
+			}
+
+			gif_data->frames[0].data = _handle->src_buffer;
+			if (_handle->path)
+				err = mm_util_encode_gif_to_file(gif_data, _handle->path);
+			else
+				err = mm_util_encode_gif_to_memory(gif_data, &dst_buffer);
+
+			if (err == MM_UTIL_ERROR_NONE) {
+				if (_handle->dst_buffer)
+					*(_handle->dst_buffer) = (unsigned char *)dst_buffer;
+				_handle->dst_size = gif_data->size;
+				_handle->width = gif_data->width;
+				_handle->height = gif_data->height;
+			}
+		}
+		break;
+	default:
+		err = MM_UTIL_ERROR_INVALID_PARAMETER;
+		break;
+	}
+
+	return err;
+}
+
+int image_util_encode_run(image_util_encode_h handle, unsigned long long *size)
+{
+	int err = MM_UTIL_ERROR_NONE;
+	decode_encode_s *_handle = (decode_encode_s *) handle;
+
+	if (_handle == NULL || _handle->is_decode == TRUE) {
+		image_util_error("Invalid Handle");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+	if ((_handle->path == NULL && _handle->dst_buffer == NULL) || _handle->src_buffer == NULL) {
+		image_util_error("Invalid input/output");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+	image_util_retvm_if((_image_util_check_resolution(_handle->width, _handle->height) == false), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid resolution");
+
+	err = _image_util_encode_internal(_handle);
+
+	if (err != MM_UTIL_ERROR_NONE) {
+		image_util_error("Error - encode run");
+		return _convert_image_util_error_code(__func__, err);
+	}
+
+	if(size)
+		*size = _handle->dst_size;
+
+	return _convert_image_util_error_code(__func__, err);
+}
+
+gpointer _image_util_encode_thread(gpointer data)
+{
+	decode_encode_s *_handle = (decode_encode_s *) data;
+	int err = MM_UTIL_ERROR_NONE;
+	gint64 end_time = 0;
+
+	if (!_handle) {
+		image_util_error("[ERROR] - handle");
+		return NULL;
+	}
+
+	while (!_handle->is_finish) {
+		end_time = g_get_monotonic_time() + 1 * G_TIME_SPAN_SECOND;
+		image_util_debug("waiting...");
+		g_mutex_lock(&(_handle->thread_mutex));
+		g_cond_wait_until(&(_handle->thread_cond), &(_handle->thread_mutex), end_time);
+		image_util_debug("<=== get run encode thread signal");
+		g_mutex_unlock(&(_handle->thread_mutex));
+
+		if (_handle->is_finish) {
+			image_util_debug("exit loop");
+			break;
+		}
+
+		err = _image_util_encode_internal(_handle);
+		if(err == MM_UTIL_ERROR_NONE) {
+			image_util_debug("Success - encode_internal");
+		} else{
+			image_util_error("Error - encode_internal");
+		}
+		if (_handle->_encode_cb) {
+			image_util_debug("completed_cb");
+			_handle->is_finish = TRUE;
+			_handle->_encode_cb->image_encode_completed_cb(_convert_image_util_error_code(__func__, err), _handle->_encode_cb->user_data, _handle->dst_size);
+		}
+	}
+
+	image_util_debug("exit thread");
+
+	return NULL;
+}
+
+static int _image_util_encode_create_thread(decode_encode_s * handle)
+{
+	int ret = MM_UTIL_ERROR_NONE;
+
+	image_util_retvm_if((handle == NULL), MM_UTIL_ERROR_INVALID_PARAMETER, "Invalid Handle");
+
+	g_mutex_init(&(handle->thread_mutex));
+
+	g_cond_init(&(handle->thread_cond));
+
+	/*create threads */
+	handle->thread = g_thread_new("encode_thread", (GThreadFunc) _image_util_encode_thread, (gpointer) handle);
+	if (!handle->thread) {
+		image_util_error("ERROR - create thread");
+		g_mutex_clear(&(handle->thread_mutex));
+
+		g_cond_clear(&(handle->thread_cond));
+		return MM_UTIL_ERROR_INVALID_OPERATION;
+	}
+
+	return ret;
+}
+
+int image_util_encode_run_async(image_util_encode_h handle, image_util_encode_completed_cb completed_cb, void *user_data)
+{
+	int err = MM_UTIL_ERROR_NONE;
+	decode_encode_s *_handle = (decode_encode_s *) handle;
+
+	if (_handle == NULL || _handle->is_decode == TRUE) {
+		image_util_error("Invalid Handle");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+	if ((_handle->path == NULL && _handle->dst_buffer == NULL) || _handle->src_buffer == NULL) {
+		image_util_error("Invalid input/output");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+	image_util_retvm_if((_image_util_check_resolution(_handle->width, _handle->height) == false), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid resolution");
+
+	image_util_retvm_if((completed_cb == NULL), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid callback");
+
+	if (_handle->_encode_cb != NULL) {
+		IMAGE_UTIL_SAFE_FREE(_handle->_encode_cb);
+		_handle->_encode_cb = NULL;
+	}
+	_handle->_encode_cb = (encode_cb_s *) calloc(1, sizeof(encode_cb_s));
+	image_util_retvm_if((_handle->_encode_cb == NULL), IMAGE_UTIL_ERROR_OUT_OF_MEMORY, "Out of memory");
+
+	_handle->_encode_cb->user_data = user_data;
+	_handle->_encode_cb->image_encode_completed_cb = completed_cb;
+
+	err = _image_util_encode_create_thread(_handle);
+
+	return _convert_image_util_error_code(__func__, err);
+}
+
+int image_util_encode_destroy(image_util_encode_h handle)
+{
+	int err = IMAGE_UTIL_ERROR_NONE;
+	decode_encode_s *_handle = (decode_encode_s *) handle;
+
+	image_util_debug("image_util_encode_destroy");
+
+	if (_handle == NULL || _handle->is_decode == TRUE) {
+		image_util_error("Invalid Handle");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+
+	switch (_handle->image_type) {
+	case IMAGE_UTIL_PNG:
+		{
+			mm_util_png_data *png_data;
+
+			png_data = (mm_util_png_data *) _handle->image_h;
+			if (png_data == NULL) {
+				image_util_error("Invalid png data");
+				return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+			}
+			IMAGE_UTIL_SAFE_FREE(png_data);
+		}
+		break;
+	case IMAGE_UTIL_GIF:
+		{
+			mm_util_gif_data *gif_data;
+
+			gif_data = (mm_util_gif_data *) _handle->image_h;
+			if (gif_data == NULL) {
+				image_util_error("Invalid gif data");
+				return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+			}
+			IMAGE_UTIL_SAFE_FREE(gif_data);
+		}
+		break;
+	default:
+		err = IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+		break;
+	}
+
+	/* g_thread_exit(handle->thread); */
+	if (_handle->thread) {
+		_handle->is_finish = TRUE;
+		g_mutex_lock(&(_handle->thread_mutex));
+		g_cond_signal(&(_handle->thread_cond));
+		image_util_debug("===> send signal(finish) to decode_thread");
+		g_mutex_unlock(&(_handle->thread_mutex));
+
+		g_thread_join(_handle->thread);
+
+		g_mutex_clear(&(_handle->thread_mutex));
+
+		g_cond_clear(&(_handle->thread_cond));
+	}
+
+	IMAGE_UTIL_SAFE_FREE(_handle);
+
+	return err;
 }

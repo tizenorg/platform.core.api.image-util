@@ -10,9 +10,13 @@ BuildRequires:  pkgconfig(dlog)
 BuildRequires:  pkgconfig(mmutil-jpeg)
 BuildRequires:  pkgconfig(mmutil-imgp)
 BuildRequires:  pkgconfig(mmutil-imgcv)
+BuildRequires:  pkgconfig(mmutil-png)
+BuildRequires:  pkgconfig(mmutil-gif)
 BuildRequires:  pkgconfig(capi-base-common)
 BuildRequires:  pkgconfig(capi-media-tool)
 BuildRequires:  cmake
+BuildRequires:  libpng-devel
+BuildRequires:  giflib-devel
 
 %description
 A Image Utility library in Tizen Native API package
@@ -26,10 +30,20 @@ Requires:  pkgconfig(mm-common)
 Requires:  pkgconfig(mmutil-jpeg)
 Requires:  pkgconfig(mmutil-imgp)
 Requires:  pkgconfig(mmutil-imgcv)
+Requires:  pkgconfig(mmutil-png)
+Requires:  pkgconfig(mmutil-gif)
 Requires:  pkgconfig(capi-base-common)
 
 %description devel
 A Image Utility library in Tizen Native API (Development) package
+
+%package tool
+Summary:    Image Utility tools
+Group:      Development/Libraries
+Requires:   %{name} = %{version}-%{release}
+
+%description tool
+Image Utility Library - Tools.
 
 %prep
 %setup -q
@@ -69,3 +83,8 @@ cp LICENSE.APLv2.0 %{buildroot}/usr/share/license/%{name}
 %{_libdir}/lib*.so
 %{_libdir}/pkgconfig/*.pc
 %{_includedir}/media/*.h
+
+%files tool
+%manifest %{name}.manifest
+%defattr(-,root,root,-) 
+%{_bindir}/*
