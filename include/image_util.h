@@ -871,6 +871,69 @@ int image_util_decode_set_input_buffer(image_util_decode_h handle, const unsigne
 int image_util_decode_set_output_buffer(image_util_decode_h handle, unsigned char **dst_buffer);
 
 /**
+* @brief Sets the decoded image colorspace format.
+* @since_tizen 3.0
+*
+* @remarks This is API is supported only for JPEG decoding. Other image formats handle only RGBA.\n
+*          If this is not set for JPEG, then by default IMAGE_UTIL_COLORSPACE_RGBA8888 is set.
+*
+* @param[in] handle The handle to image util decoding
+* @param[in] color_format The decoded image colorspace
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Format not supported
+*
+* @pre image_util_decode_create()
+*
+* @post image_util_decode_run()/image_util_decode_run_async()
+* @post image_util_decode_destroy()
+*
+* @see image_util_decode_create()
+* @see image_util_decode_set_input_path()
+* @see image_util_decode_set_input_buffer()
+* @see image_util_decode_set_output_buffer()
+* @see image_util_decode_run()
+* @see image_util_decode_run_async()
+* @see image_util_decode_destroy()
+*/
+int image_util_decode_set_format(image_util_encode_h handle, image_util_colorspace_e color_format);
+
+/**
+* @brief Sets the downscale value at which JPEG image should be decoded.
+* @since_tizen 3.0
+*
+* @remarks This is API is supported only for JPEG decoding.
+*
+* @param[in] handle The handle to image util decoding
+* @param[in] color_format The decoded image color space
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Format not supported
+*
+* @pre image_util_decode_create()
+*
+* @post image_util_decode_run()/image_util_decode_run_async()
+* @post image_util_decode_destroy()
+*
+* @see image_util_decode_create()
+* @see image_util_decode_set_input_path()
+* @see image_util_decode_set_input_buffer()
+* @see image_util_decode_set_output_buffer()
+* @see image_util_decode_run()
+* @see image_util_decode_run_async()
+* @see image_util_decode_destroy()
+*/
+int image_util_decode_set_jpeg_downscale(image_util_encode_h handle, image_util_scale_e down_scale);
+
+/**
 * @brief Starts decoding of the image and fills the output buffer set using image_util_decode_set_output_buffer().
 * @since_tizen 3.0
 *
@@ -1010,6 +1073,71 @@ int image_util_encode_create(image_util_type_e image_type, image_util_encode_h *
 * @see image_util_encode_destroy()
 */
 int image_util_encode_set_resolution(image_util_encode_h handle, unsigned long width, unsigned long height);
+
+/**
+* @brief Sets the colorspace format for image encoding.
+* @since_tizen 3.0
+*
+* @remarks This is API is supported only for JPEG encoding. Other image formats handle only RGBA.\n
+*          If this is not set for JPEG, then by default IMAGE_UTIL_COLORSPACE_RGBA8888 is set.
+*
+* @param[in] handle The handle to image util encoding
+* @param[in] color_format The decoded image colorspace
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Format not supported
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+*
+* @pre image_util_encode_create()
+*
+* @post image_util_encode_run()/image_util_encode_run_async()
+* @post image_util_encode_destroy()
+*
+* @see image_util_encode_create()
+* @see image_util_encode_set_resolution()
+* @see image_util_encode_set_input_buffer()
+* @see image_util_encode_set_output_path()
+* @see image_util_encode_set_output_buffer()
+* @see image_util_encode_run()
+* @see image_util_encode_run_async()
+* @see image_util_encode_destroy()
+*/
+int image_util_encode_set_format(image_util_encode_h handle, image_util_colorspace_e color_format);
+
+/**
+* @brief Sets the quality for JPEG image encoding.
+* @since_tizen 3.0
+*
+* @remarks If application does not set this, then by default quality of 20 is set.
+*
+* @param[in] handle The handle to image util encoding
+* @param[in] quality Encoding quality from 1~100
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Format not supported
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+*
+* @pre image_util_encode_create()
+*
+* @post image_util_encode_run()/image_util_encode_run_async()
+* @post image_util_encode_destroy()
+*
+* @see image_util_encode_create()
+* @see image_util_encode_set_resolution()
+* @see image_util_encode_set_input_buffer()
+* @see image_util_encode_set_output_path()
+* @see image_util_encode_set_output_buffer()
+* @see image_util_encode_run()
+* @see image_util_encode_run_async()
+* @see image_util_encode_destroy()
+*/
+int image_util_encode_set_jpeg_quality(image_util_encode_h handle, int quality);
 
 /**
 * @brief Sets the compression value of png image encoding(0~9).
