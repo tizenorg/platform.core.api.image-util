@@ -333,6 +333,7 @@ int image_util_transform_run(transformation_h handle, media_packet_h src, image_
 int image_util_transform_destroy(transformation_h handle);
 
 /**
+* @deprecated Deprecated since 3.0. Use image_util_supported_colorspace_cb() instead.
 * @brief Called once for each supported JPEG encode/decode colorspace.
 * @since_tizen 2.3
 *
@@ -353,6 +354,7 @@ int image_util_transform_destroy(transformation_h handle);
 typedef bool(*image_util_supported_jpeg_colorspace_cb)(image_util_colorspace_e colorspace, void *user_data);
 
 /**
+* @deprecated Deprecated since 3.0. Use image_util_foreach_supported_colorspace() instead.
 * @brief Retrieves all supported JPEG encoding/decoding colorspace by invoking a callback function once for each one.
 * @since_tizen 2.3
 *
@@ -537,6 +539,7 @@ int image_util_crop(unsigned char *dest, int x, int y, int *width, int *height, 
 
 
 /**
+* @deprecated Deprecated since 3.0. Use image_util_decode_create() instead.
 * @brief Decodes the JPEG image to the buffer.
 * @since_tizen 2.3
 *
@@ -570,6 +573,7 @@ int image_util_crop(unsigned char *dest, int x, int y, int *width, int *height, 
 int image_util_decode_jpeg(const char *path, image_util_colorspace_e colorspace, unsigned char **image_buffer, int *width, int *height, unsigned int *size);
 
 /**
+* @deprecated Deprecated since 3.0. Use image_util_decode_create() instead.
 * @brief Decodes the JPEG image(in memory) to the buffer.
 * @since_tizen 2.3
 *
@@ -602,6 +606,7 @@ int image_util_decode_jpeg(const char *path, image_util_colorspace_e colorspace,
 int image_util_decode_jpeg_from_memory(const unsigned char *jpeg_buffer, int jpeg_size, image_util_colorspace_e colorspace, unsigned char **image_buffer, int *width, int *height, unsigned int *size);
 
 /**
+* @deprecated Deprecated since 3.0. Use image_util_decode_create() instead.
 * @brief Decodes the JPEG image to the buffer with downscale decoding option.
 * @since_tizen 2.4
 *
@@ -636,6 +641,7 @@ int image_util_decode_jpeg_from_memory(const unsigned char *jpeg_buffer, int jpe
 int image_util_decode_jpeg_with_downscale(const char *path, image_util_colorspace_e colorspace, image_util_scale_e downscale, unsigned char **image_buffer, int *width, int *height, unsigned int *size);
 
 /**
+* @deprecated Deprecated since 3.0. Use image_util_decode_create() instead.
 * @brief Decodes the JPEG image(in memory) to the buffer with downscale decoding option.
 * @since_tizen 2.4
 *
@@ -669,6 +675,7 @@ int image_util_decode_jpeg_with_downscale(const char *path, image_util_colorspac
 int image_util_decode_jpeg_from_memory_with_downscale(const unsigned char *jpeg_buffer, int jpeg_size, image_util_colorspace_e colorspace, image_util_scale_e downscale, unsigned char **image_buffer, int *width, int *height, unsigned int *size);
 
 /**
+* @deprecated Deprecated since 3.0. Use image_util_encode_create() instead.
 * @brief Encodes the image to the JPEG image.
 * @since_tizen 2.3
 *
@@ -699,6 +706,7 @@ int image_util_decode_jpeg_from_memory_with_downscale(const unsigned char *jpeg_
 int image_util_encode_jpeg(const unsigned char *buffer, int width, int height, image_util_colorspace_e colorspace,  int quality, const char *path);
 
 /**
+* @deprecated Deprecated since 3.0. Use image_util_encode_create() instead.
 * @brief Encodes the image to the JPEG image
 * @since_tizen 2.3
 *
@@ -750,6 +758,44 @@ int image_util_encode_jpeg_to_memory(const unsigned char *image_buffer, int widt
 *
 */
 int image_util_extract_color_from_memory(const unsigned char *image_buffer, int width, int height, unsigned char *rgb_r, unsigned char *rgb_g, unsigned char *rgb_b);
+
+/**
+* @brief Called once for each supported image encode/decode colorspace.
+* @since_tizen 3.0
+*
+* @param[in] colorspace The colorspace
+* @param[in] user_data The user data passed from the foreach function
+*
+* @return @c true to continue with the next iteration of the loop, \n
+*         otherwise @c false to break out of the loop
+*
+* @pre image_util_foreach_supported_colorspace() invokes this callback.
+*
+* @see image_util_foreach_supported_colorspace()
+* @see image_util_encode_create()
+* @see image_util_decode_create()
+*/
+typedef bool(*image_util_supported_colorspace_cb)(image_util_colorspace_e colorspace, void *user_data);
+
+/**
+* @brief Retrieves all supported image encoding/decoding colorspace by invoking a callback function once for each one.
+* @since_tizen 3.0
+*
+* @param[in] callback The callback function to invoke
+* @param[in] user_data The user data to be passed to the callback function
+* @return 0 on success,
+*         otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+*
+* @post This function invokes image_util_supported_colorspace_cb() repeatedly to retrieve each supported image encoding/decoding colorspace.
+*
+* @see image_util_supported_colorspace_cb()
+* @see image_util_encode_create()
+* @see image_util_decode_create()
+*/
+int image_util_foreach_supported_colorspace(image_util_type_e image_type, image_util_supported_colorspace_cb callback, void *user_data);
 
 /**
 * @brief Creates a handle to image util decoding.
@@ -844,7 +890,8 @@ int image_util_decode_set_input_buffer(image_util_decode_h handle, const unsigne
 * @since_tizen 3.0
 *
 * @remarks Either image_util_decode_set_input_path() or image_util_decode_set_input_buffer() should be set.\n
-*          The decoded output buffer will be RGBA format.
+*          By default the decoded output buffer colorspace will be IMAGE_UTIL_COLORSPACE_RGBA8888.
+*          Use image_util_decode_set_colorspace to change the colorspace.
 *
 * @param[in] handle The handle to image util decoding
 * @param[in] dst_buffer The decoded output buffer
@@ -869,6 +916,72 @@ int image_util_decode_set_input_buffer(image_util_decode_h handle, const unsigne
 * @see image_util_decode_destroy()
 */
 int image_util_decode_set_output_buffer(image_util_decode_h handle, unsigned char **dst_buffer);
+
+/**
+* @brief Sets the decoded image colorspace format.
+* @since_tizen 3.0
+*
+* @remarks The default colorspace is IMAGE_UTIL_COLORSPACE_RGBA8888.\n
+*          Use image_util_foreach_supported_colorspace to get supported colorspaces for each image format.\n
+*          Errors would be returned if not supported.
+*
+* @param[in] handle The handle to image util decoding
+* @param[in] colorspace The decoded image colorspace
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Format not supported
+*
+* @pre image_util_decode_create()
+*
+* @post image_util_decode_run()/image_util_decode_run_async()
+* @post image_util_decode_destroy()
+*
+* @see image_util_supported_colorspace_cb()
+* @see image_util_foreach_supported_colorspace()
+* @see image_util_decode_create()
+* @see image_util_decode_set_input_path()
+* @see image_util_decode_set_input_buffer()
+* @see image_util_decode_set_output_buffer()
+* @see image_util_decode_run()
+* @see image_util_decode_run_async()
+* @see image_util_decode_destroy()
+*/
+int image_util_decode_set_colorspace(image_util_encode_h handle, image_util_colorspace_e colorspace);
+
+/**
+* @brief Sets the downscale value at which JPEG image should be decoded.
+* @since_tizen 3.0
+*
+* @remarks This is API is supported only for JPEG decoding.
+*
+* @param[in] handle The handle to image util decoding
+* @param[in] down_scale The downscale at which image is to be decoded
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Format not supported
+*
+* @pre image_util_decode_create()
+*
+* @post image_util_decode_run()/image_util_decode_run_async()
+* @post image_util_decode_destroy()
+*
+* @see image_util_decode_create()
+* @see image_util_decode_set_input_path()
+* @see image_util_decode_set_input_buffer()
+* @see image_util_decode_set_output_buffer()
+* @see image_util_decode_run()
+* @see image_util_decode_run_async()
+* @see image_util_decode_destroy()
+*/
+int image_util_decode_set_jpeg_downscale(image_util_encode_h handle, image_util_scale_e down_scale);
 
 /**
 * @brief Starts decoding of the image and fills the output buffer set using image_util_decode_set_output_buffer().
@@ -1012,6 +1125,74 @@ int image_util_encode_create(image_util_type_e image_type, image_util_encode_h *
 int image_util_encode_set_resolution(image_util_encode_h handle, unsigned long width, unsigned long height);
 
 /**
+* @brief Sets the colorspace format for image encoding.
+* @since_tizen 3.0
+*
+* @remarks The default colorspace is IMAGE_UTIL_COLORSPACE_RGBA8888.\n
+*          Use image_util_foreach_supported_colorspace to get supported colorspaces for each image format.\n
+*          Errors would be returned if not supported.
+*
+* @param[in] handle The handle to image util encoding
+* @param[in] colorspace The decoded image colorspace
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Format not supported
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+*
+* @pre image_util_encode_create()
+*
+* @post image_util_encode_run()/image_util_encode_run_async()
+* @post image_util_encode_destroy()
+*
+* @see image_util_supported_colorspace_cb()
+* @see image_util_foreach_supported_colorspace()
+* @see image_util_encode_create()
+* @see image_util_encode_set_resolution()
+* @see image_util_encode_set_input_buffer()
+* @see image_util_encode_set_output_path()
+* @see image_util_encode_set_output_buffer()
+* @see image_util_encode_run()
+* @see image_util_encode_run_async()
+* @see image_util_encode_destroy()
+*/
+int image_util_encode_set_colorspace(image_util_encode_h handle, image_util_colorspace_e colorspace);
+
+/**
+* @brief Sets the quality for JPEG image encoding.
+* @since_tizen 3.0
+*
+* @remarks If application does not set this, then by default quality of 20 is set.
+*
+* @param[in] handle The handle to image util encoding
+* @param[in] quality Encoding quality from 1~100
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Format not supported
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+*
+* @pre image_util_encode_create()
+*
+* @post image_util_encode_run()/image_util_encode_run_async()
+* @post image_util_encode_destroy()
+*
+* @see image_util_encode_create()
+* @see image_util_encode_set_resolution()
+* @see image_util_encode_set_input_buffer()
+* @see image_util_encode_set_output_path()
+* @see image_util_encode_set_output_buffer()
+* @see image_util_encode_run()
+* @see image_util_encode_run_async()
+* @see image_util_encode_destroy()
+*/
+int image_util_encode_set_jpeg_quality(image_util_encode_h handle, int quality);
+
+/**
 * @brief Sets the compression value of png image encoding(0~9).
 * @since_tizen 3.0
 *
@@ -1048,8 +1229,9 @@ int image_util_encode_set_png_compression(image_util_encode_h handle, image_util
 * @brief Sets the input buffer from which to encode.
 * @since_tizen 3.0
 *
-* @remarks Either image_util_encode_set_output_path() or image_util_encode_set_output_buffer() should be set.
-*          The input buffer should be RGBA format.
+* @remarks Either image_util_encode_set_output_path() or image_util_encode_set_output_buffer() should be set.\n
+*          By default the input buffer colorspace will be considered as IMAGE_UTIL_COLORSPACE_RGBA8888.\n
+*          Use image_util_encode_set_colorspace to change the colorspace.
 *
 * @param[in] handle The handle to image util decoding
 * @param[in] src_buffer The input image buffer

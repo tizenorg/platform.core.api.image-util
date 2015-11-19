@@ -68,6 +68,59 @@ static int _convert_encode_colorspace_tbl[] = {
 	-1											,	/* IMAGE_UTIL_COLORSPACE_NV61 */
 };
 
+static int _convert_jpeg_colorspace_tbl[] = {
+	MM_UTIL_JPEG_FMT_YUV420						,	/* IMAGE_UTIL_COLORSPACE_YUV420 */
+	-1											,	/* IMAGE_UTIL_COLORSPACE_YUV422 */
+	MM_UTIL_JPEG_FMT_YUV420						,	/* IMAGE_UTIL_COLORSPACE_I420 */
+	MM_UTIL_JPEG_FMT_NV12						,	/* IMAGE_UTIL_COLORSPACE_NV12 */
+	-1											,	/* IMAGE_UTIL_COLORSPACE_UYVY */
+	-1											,	/* IMAGE_UTIL_COLORSPACE_YUYV */
+	-1											,	/* IMAGE_UTIL_COLORSPACE_RGB565 */
+	MM_UTIL_JPEG_FMT_RGB888						,	/* IMAGE_UTIL_COLORSPACE_RGB888 */
+	MM_UTIL_JPEG_FMT_ARGB8888					,	/* IMAGE_UTIL_COLORSPACE_ARGB8888 */
+	MM_UTIL_JPEG_FMT_BGRA8888					,	/* IMAGE_UTIL_COLORSPACE_BGRA8888 */
+	MM_UTIL_JPEG_FMT_RGBA8888					,	/* IMAGE_UTIL_COLORSPACE_RGBA8888 */
+	-1											,	/* IMAGE_UTIL_COLORSPACE_BGRX8888 */
+	-1											,	/* IMAGE_UTIL_COLORSPACE_NV21 */
+	-1											,	/* IMAGE_UTIL_COLORSPACE_NV16 */
+	-1											,	/* IMAGE_UTIL_COLORSPACE_NV61 */
+};
+
+static int _convert_png_colorspace_tbl[] = {
+	-1					,	/* IMAGE_UTIL_COLORSPACE_YUV420 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_YUV422 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_I420 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_NV12 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_UYVY */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_YUYV */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_RGB565 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_RGB888 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_ARGB8888 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_BGRA8888 */
+	MM_UTIL_PNG_COLOR_TYPE_RGB_ALPHA	,	/* IMAGE_UTIL_COLORSPACE_RGBA8888 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_BGRX8888 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_NV21 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_NV16 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_NV61 */
+};
+
+static int _convert_gif_colorspace_tbl[] = {
+	-1					,	/* IMAGE_UTIL_COLORSPACE_YUV420 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_YUV422 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_I420 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_NV12 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_UYVY */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_YUYV */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_RGB565 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_RGB888 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_ARGB8888 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_BGRA8888 */
+	MM_UTIL_GIF_FMT_RGBA8888		,	/* IMAGE_UTIL_COLORSPACE_RGBA8888 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_BGRX8888 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_NV21 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_NV16 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_NV61 */
+};
 
 static int _convert_decode_scale_tbl[] = {
 	MM_UTIL_JPEG_DECODE_DOWNSCALE_1_1,
@@ -754,6 +807,61 @@ int image_util_extract_color_from_memory(const unsigned char *image_buffer, int 
 	return _convert_image_util_error_code(__func__, ret);
 }
 
+int image_util_foreach_supported_colorspace(image_util_type_e image_type, image_util_supported_colorspace_cb callback, void *user_data)
+{
+	int i = 0;
+
+	image_util_retvm_if((callback == NULL), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "callback is null");
+
+	switch (image_type) {
+	case IMAGE_UTIL_JPEG:
+	/* RGB has higher precedence than YUV */
+	for (i = sizeof(_convert_jpeg_colorspace_tbl) / sizeof(int) - 1; i >= 0; i--) {
+		if (_convert_jpeg_colorspace_tbl[i] != -1)
+			if (false == callback(i, user_data))
+				return IMAGE_UTIL_ERROR_NONE;
+
+	}
+		break;
+	case IMAGE_UTIL_PNG:
+	for (i = sizeof(_convert_png_colorspace_tbl) / sizeof(int) - 1; i >= 0; i--) {
+		if (_convert_png_colorspace_tbl[i] != -1)
+			if (false == callback(i, user_data))
+				return IMAGE_UTIL_ERROR_NONE;
+
+	}
+		break;
+	case IMAGE_UTIL_GIF:
+	for (i = sizeof(_convert_gif_colorspace_tbl) / sizeof(int) - 1; i >= 0; i--) {
+		if (_convert_gif_colorspace_tbl[i] != -1)
+			if (false == callback(i, user_data))
+				return IMAGE_UTIL_ERROR_NONE;
+
+	}
+		break;
+	default:
+		return MM_UTIL_ERROR_INVALID_PARAMETER;
+	}
+
+	return IMAGE_UTIL_ERROR_NONE;
+}
+
+static int _image_util_decode_create_jpeg_handle(decode_encode_s * handle)
+{
+	int err = MM_UTIL_ERROR_NONE;
+
+	image_util_retvm_if((handle == NULL), MM_UTIL_ERROR_INVALID_PARAMETER, "Invalid Handle");
+
+	mm_util_jpeg_yuv_data *_handle = (mm_util_jpeg_yuv_data *) calloc(1, sizeof(mm_util_jpeg_yuv_data));
+	image_util_retvm_if((_handle == NULL), MM_UTIL_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY(0x%08x)", MM_UTIL_ERROR_OUT_OF_MEMORY);
+
+	handle->image_h = (MMHandleType) _handle;
+	handle->colorspace = IMAGE_UTIL_COLORSPACE_RGBA8888;
+	handle->down_scale = sizeof(_convert_decode_scale_tbl);
+
+	return err;
+}
+
 static int _image_util_decode_create_png_handle(decode_encode_s * handle)
 {
 	int err = MM_UTIL_ERROR_NONE;
@@ -803,6 +911,9 @@ int image_util_decode_create(image_util_type_e image_type, image_util_decode_h *
 	_handle->is_decode = TRUE;
 
 	switch (image_type) {
+	case IMAGE_UTIL_JPEG:
+		err = _image_util_decode_create_jpeg_handle(_handle);
+		break;
 	case IMAGE_UTIL_PNG:
 		err = _image_util_decode_create_png_handle(_handle);
 		break;
@@ -886,11 +997,93 @@ int image_util_decode_set_output_buffer(image_util_decode_h handle, unsigned cha
 	return err;
 }
 
+int image_util_decode_set_colorspace(image_util_encode_h handle, image_util_colorspace_e colorspace)
+{
+	int err = IMAGE_UTIL_ERROR_NONE;
+	decode_encode_s *_handle = (decode_encode_s *) handle;
+
+	if (_handle == NULL || _handle->is_decode == FALSE) {
+		image_util_error("Invalid Handle");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+
+	image_util_retvm_if((colorspace < 0 || colorspace >= sizeof(image_util_colorspace_e) / sizeof(int)), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid colorspace");
+	switch (_handle->image_type) {
+	case IMAGE_UTIL_JPEG:
+	image_util_retvm_if((_convert_jpeg_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
+		break;
+	case IMAGE_UTIL_PNG:
+	image_util_retvm_if((_convert_png_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
+		break;
+	case IMAGE_UTIL_GIF:
+	image_util_retvm_if((_convert_gif_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
+		break;
+	default:
+		image_util_error("Invalid image type");
+		return MM_UTIL_ERROR_INVALID_PARAMETER;
+	}
+
+	_handle->colorspace = colorspace;
+
+	return err;
+}
+
+int image_util_decode_set_jpeg_downscale(image_util_encode_h handle, image_util_scale_e down_scale)
+{
+	int err = IMAGE_UTIL_ERROR_NONE;
+	decode_encode_s *_handle = (decode_encode_s *) handle;
+
+	if (_handle == NULL || _handle->is_decode == FALSE) {
+		image_util_error("Invalid Handle");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+	if (_handle->image_type != IMAGE_UTIL_JPEG) {
+		image_util_error("Wrong image format");
+		return IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT;
+	}
+	image_util_retvm_if((down_scale < 0 || down_scale >= sizeof(_convert_decode_scale_tbl) / sizeof(int)), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "downscale is invalid");
+
+	_handle->down_scale = down_scale;
+
+	return err;
+}
+
 static int _image_util_decode_internal(decode_encode_s * _handle)
 {
 	int err = MM_UTIL_ERROR_NONE;
 
 	switch (_handle->image_type) {
+	case IMAGE_UTIL_JPEG:
+		{
+			mm_util_jpeg_yuv_data *jpeg_data;
+
+			jpeg_data = (mm_util_jpeg_yuv_data *) _handle->image_h;
+			if (jpeg_data == NULL) {
+				image_util_error("Invalid jpeg data");
+				return MM_UTIL_ERROR_INVALID_PARAMETER;
+			}
+
+			if (_handle->path) {
+				if (_handle->down_scale < sizeof(_convert_decode_scale_tbl))
+					err = mm_util_decode_from_jpeg_file_with_downscale(jpeg_data, _handle->path, _convert_jpeg_colorspace_tbl[_handle->colorspace], _convert_decode_scale_tbl[_handle->down_scale]);
+				else
+					err = mm_util_decode_from_jpeg_file(jpeg_data, _handle->path, _convert_jpeg_colorspace_tbl[_handle->colorspace]);
+			}
+			else {
+				if (_handle->down_scale < sizeof(_convert_decode_scale_tbl))
+					err = mm_util_decode_from_jpeg_memory_with_downscale(jpeg_data, _handle->src_buffer, _handle->src_size, _convert_jpeg_colorspace_tbl[_handle->colorspace], _convert_decode_scale_tbl[_handle->down_scale]);
+				else
+					err = mm_util_decode_from_jpeg_memory(jpeg_data, _handle->src_buffer, _handle->src_size, _convert_jpeg_colorspace_tbl[_handle->colorspace]);
+			}
+
+			if (err == MM_UTIL_ERROR_NONE) {
+				*(_handle->dst_buffer) = jpeg_data->data;
+				_handle->dst_size = jpeg_data->size;
+				_handle->width = jpeg_data->width;
+				_handle->height = jpeg_data->height;
+			}
+		}
+		break;
 	case IMAGE_UTIL_PNG:
 		{
 			mm_util_png_data *png_data;
@@ -1084,6 +1277,18 @@ int image_util_decode_destroy(image_util_decode_h handle)
 	}
 
 	switch (_handle->image_type) {
+	case IMAGE_UTIL_JPEG:
+		{
+			mm_util_jpeg_yuv_data *jpeg_data;
+
+			jpeg_data = (mm_util_jpeg_yuv_data *) _handle->image_h;
+			if (jpeg_data == NULL) {
+				image_util_error("Invalid jpeg data");
+				return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+			}
+			IMAGE_UTIL_SAFE_FREE(jpeg_data);
+		}
+		break;
 	case IMAGE_UTIL_PNG:
 		{
 			mm_util_png_data *png_data;
@@ -1129,6 +1334,22 @@ int image_util_decode_destroy(image_util_decode_h handle)
 	}
 
 	IMAGE_UTIL_SAFE_FREE(_handle);
+
+	return err;
+}
+
+static int _image_util_encode_create_jpeg_handle(decode_encode_s * handle)
+{
+	int err = MM_UTIL_ERROR_NONE;
+
+	image_util_retvm_if((handle == NULL), MM_UTIL_ERROR_INVALID_PARAMETER, "Invalid Handle");
+
+	mm_util_jpeg_yuv_data *_handle = (mm_util_jpeg_yuv_data *) calloc(1, sizeof(mm_util_jpeg_yuv_data));
+	image_util_retvm_if((_handle == NULL), MM_UTIL_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY(0x%08x)", MM_UTIL_ERROR_OUT_OF_MEMORY);
+
+	handle->image_h = (MMHandleType) _handle;
+	handle->colorspace = IMAGE_UTIL_COLORSPACE_RGBA8888;
+	handle->quality = 20;
 
 	return err;
 }
@@ -1186,6 +1407,9 @@ int image_util_encode_create(image_util_type_e image_type, image_util_encode_h *
 	_handle->is_decode = FALSE;
 
 	switch (image_type) {
+	case IMAGE_UTIL_JPEG:
+		err = _image_util_encode_create_jpeg_handle(_handle);
+		break;
 	case IMAGE_UTIL_PNG:
 		err = _image_util_encode_create_png_handle(_handle);
 		break;
@@ -1220,6 +1444,19 @@ int image_util_encode_set_resolution(image_util_encode_h handle, unsigned long w
 	image_util_retvm_if((_image_util_check_resolution(width, height) == false), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid resolution");
 
 	switch (_handle->image_type) {
+	case IMAGE_UTIL_JPEG:
+		{
+			mm_util_jpeg_yuv_data *jpeg_data;
+
+			jpeg_data = (mm_util_jpeg_yuv_data *) _handle->image_h;
+			if (jpeg_data == NULL) {
+				image_util_error("Invalid jpeg data");
+				return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+			}
+			jpeg_data->width = width;
+			jpeg_data->height = height;
+		}
+		break;
 	case IMAGE_UTIL_PNG:
 		{
 			mm_util_png_data *png_data;
@@ -1257,6 +1494,57 @@ int image_util_encode_set_resolution(image_util_encode_h handle, unsigned long w
 	return err;
 }
 
+int image_util_encode_set_colorspace(image_util_encode_h handle, image_util_colorspace_e colorspace)
+{
+	int err = IMAGE_UTIL_ERROR_NONE;
+	decode_encode_s *_handle = (decode_encode_s *) handle;
+
+	if (_handle == NULL || _handle->is_decode == TRUE) {
+		image_util_error("Invalid Handle");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+
+	image_util_retvm_if((colorspace < 0 || colorspace >= sizeof(image_util_colorspace_e) / sizeof(int)), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid colorspace");
+	switch (_handle->image_type) {
+	case IMAGE_UTIL_JPEG:
+	image_util_retvm_if((_convert_jpeg_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
+		break;
+	case IMAGE_UTIL_PNG:
+	image_util_retvm_if((_convert_png_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
+		break;
+	case IMAGE_UTIL_GIF:
+	image_util_retvm_if((_convert_gif_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
+		break;
+	default:
+		image_util_error("Invalid image type");
+		return MM_UTIL_ERROR_INVALID_PARAMETER;
+	}
+
+	_handle->colorspace = colorspace;
+
+	return err;
+}
+
+int image_util_encode_set_jpeg_quality(image_util_encode_h handle, int quality)
+{
+	int err = IMAGE_UTIL_ERROR_NONE;
+	decode_encode_s *_handle = (decode_encode_s *) handle;
+
+	if (_handle == NULL || _handle->is_decode == TRUE) {
+		image_util_error("Invalid Handle");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+	if (_handle->image_type != IMAGE_UTIL_JPEG) {
+		image_util_error("Wrong image format");
+		return IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT;
+	}
+	image_util_retvm_if((quality <= 0 || quality > 100), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid quality");
+
+	_handle->quality = quality;
+
+	return err;
+}
+
 int image_util_encode_set_png_compression(image_util_encode_h handle, image_util_png_compression_e compression)
 {
 	int err = IMAGE_UTIL_ERROR_NONE;
@@ -1271,6 +1559,8 @@ int image_util_encode_set_png_compression(image_util_encode_h handle, image_util
 		image_util_error("Wrong image format");
 		return IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT;
 	}
+	image_util_retvm_if((compression < IMAGE_UTIL_PNG_COMPRESSION_0 || compression > IMAGE_UTIL_PNG_COMPRESSION_9), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid compression value");
+
 	png_data = (mm_util_png_data *) _handle->image_h;
 	if (png_data == NULL) {
 		image_util_error("Invalid png data");
@@ -1347,6 +1637,14 @@ static int _image_util_encode_internal(decode_encode_s * _handle)
 	int err = MM_UTIL_ERROR_NONE;
 
 	switch (_handle->image_type) {
+	case IMAGE_UTIL_JPEG:
+		{
+			if (_handle->path)
+				err = mm_util_jpeg_encode_to_file (_handle->path, _handle->src_buffer, _handle->width, _handle->height, _convert_jpeg_colorspace_tbl[_handle->colorspace], _handle->quality);
+			else
+				err = mm_util_jpeg_encode_to_memory (_handle->dst_buffer, (int *)&(_handle->dst_size), _handle->src_buffer, _handle->width, _handle->height, _convert_jpeg_colorspace_tbl[_handle->colorspace], _handle->quality);
+		}
+		break;
 	case IMAGE_UTIL_PNG:
 		{
 			mm_util_png_data *png_data;
@@ -1543,6 +1841,18 @@ int image_util_encode_destroy(image_util_encode_h handle)
 	}
 
 	switch (_handle->image_type) {
+	case IMAGE_UTIL_JPEG:
+		{
+			mm_util_jpeg_yuv_data *jpeg_data;
+
+			jpeg_data = (mm_util_jpeg_yuv_data *) _handle->image_h;
+			if (jpeg_data == NULL) {
+				image_util_error("Invalid jpeg data");
+				return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+			}
+			IMAGE_UTIL_SAFE_FREE(jpeg_data);
+		}
+		break;
 	case IMAGE_UTIL_PNG:
 		{
 			mm_util_png_data *png_data;

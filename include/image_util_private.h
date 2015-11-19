@@ -106,6 +106,9 @@ typedef struct {
 	unsigned long width;
 	unsigned long height;
 	bool is_decode;
+        int quality;
+	image_util_colorspace_e colorspace;
+	image_util_scale_e down_scale;
 	decode_cb_s *_decode_cb;
 	encode_cb_s *_encode_cb;
 
