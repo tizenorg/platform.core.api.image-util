@@ -129,6 +129,7 @@ typedef void(*image_util_transform_completed_cb)(media_packet_h *dst, int error_
  * @since_tizen 3.0
  */
 typedef enum {
+	IMAGE_UTIL_JPEG,	 /**< Image format JPEG */
 	IMAGE_UTIL_PNG,		 /**< Image format PNG */
 	IMAGE_UTIL_GIF,		 /**< Image format GIF */
 } image_util_type_e;
