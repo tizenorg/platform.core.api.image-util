@@ -234,6 +234,9 @@ int main(int argc, char *argv[])
 			memset(filename, 0, BUFFER_SIZE);
 
 			switch (encode_image_type) {
+			case IMAGE_UTIL_JPEG:
+				snprintf(type, 4, "%s", "jpg");
+				break;
 			case IMAGE_UTIL_PNG:
 				snprintf(type, 4, "%s", "png");
 				break;
@@ -252,6 +255,12 @@ int main(int argc, char *argv[])
 			ret = image_util_encode_set_resolution(encoded, image_width, image_height);
 			if (ret != IMAGE_UTIL_ERROR_NONE)
 				return 0;
+
+			if (encode_image_type == IMAGE_UTIL_JPEG) {
+				ret = image_util_encode_set_jpeg_quality(encoded, 100);
+				if (ret != IMAGE_UTIL_ERROR_NONE)
+					return 0;
+			}
 
 			ret = image_util_encode_set_input_buffer(encoded, data);
 			if (ret != IMAGE_UTIL_ERROR_NONE)
