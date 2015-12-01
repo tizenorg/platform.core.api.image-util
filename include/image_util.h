@@ -806,7 +806,6 @@ int image_util_foreach_supported_colorspace(image_util_type_e image_type, image_
 *
 * @remarks You must release the @a image util handle using image_util_decode_destroy().
 *
-* @param[in] image_type The type of image for which to create decode handle.
 * @param[out] handle A handle to image util decoding
 *
 * @return @c 0 on success,
@@ -819,7 +818,7 @@ int image_util_foreach_supported_colorspace(image_util_type_e image_type, image_
 * @see image_util_decode_destroy()
 *
 */
-int image_util_decode_create(image_util_type_e image_type, image_util_decode_h *handle);
+int image_util_decode_create(image_util_decode_h *handle);
 
 /**
 * @brief Sets the input file path from which to decode.
@@ -828,7 +827,8 @@ int image_util_decode_create(image_util_type_e image_type, image_util_decode_h *
 * @remarks One of image_util_decode_set_input_path() or image_util_decode_set_input_buffer() should be set.\n
 *          If both are set then the latest input set, is considered.\n
 *          http://tizen.org/privilege/mediastorage is needed if input or output path are relevant to media storage.\n
-*          http://tizen.org/privilege/externalstorage is needed if input or output path are relevant to external storage.
+*          http://tizen.org/privilege/externalstorage is needed if input or output path are relevant to external storage.\n
+*          Finds out image type by reading the header of the image provided in input path.
 *
 * @param[in] handle The handle to image util decoding
 * @param[in] path The path to input image
@@ -841,6 +841,8 @@ int image_util_decode_create(image_util_type_e image_type, image_util_decode_h *
 * @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
 * @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
 * @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+* @retval #IMAGE_UTIL_ERROR_OUT_OF_MEMORY Out of memory
+* @retval #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Format not supported
 *
 * @pre image_util_decode_create()
 *
@@ -860,7 +862,8 @@ int image_util_decode_set_input_path(image_util_decode_h handle, const char *pat
 * @since_tizen 3.0
 *
 * @remarks One of image_util_decode_set_input_path() or image_util_decode_set_input_buffer() should be set.\n
-*          If both are set then the latest input set, is considered.
+*          If both are set then the latest input set, is considered.\n
+*          Finds out image type by reading the header of the image provided in input buffer.
 *
 * @param[in] handle The handle to image util decoding
 * @param[in] src_buffer The input image buffer
@@ -872,6 +875,8 @@ int image_util_decode_set_input_path(image_util_decode_h handle, const char *pat
 * @retval #IMAGE_UTIL_ERROR_NONE Successful
 * @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
 * @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+* @retval #IMAGE_UTIL_ERROR_OUT_OF_MEMORY Out of memory
+* @retval #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Format not supported
 *
 * @pre image_util_decode_create()
 *
@@ -1078,7 +1083,7 @@ int image_util_decode_destroy(image_util_decode_h handle);
 *
 * @remarks You must release the @a image util handle using image_util_encode_destroy().
 *
-* @param[in] image_type The type of image for which to create encode handle.
+* @param[in] image_type The type of output image for which to create encode handle.
 * @param[out] handle A handle to image util encoding
 *
 * @return @c 0 on success,
