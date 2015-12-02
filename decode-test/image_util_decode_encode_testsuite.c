@@ -243,6 +243,9 @@ int main(int argc, char *argv[])
 			case IMAGE_UTIL_GIF:
 				snprintf(type, 4, "%s", "gif");
 				break;
+			case IMAGE_UTIL_BMP:
+				snprintf(type, 4, "%s", "bmp");
+				break;
 			default:
 				break;
 			}
@@ -267,7 +270,10 @@ int main(int argc, char *argv[])
 				return 0;
 
 			if (!strcmp("decode-mem", argv[1])) {
-				ret = image_util_encode_set_output_buffer(encoded, &dst);
+				if (encode_image_type == IMAGE_UTIL_BMP)
+					ret = image_util_encode_set_output_path(encoded, filename);
+				else
+					ret = image_util_encode_set_output_buffer(encoded, &dst);
 				if (ret != IMAGE_UTIL_ERROR_NONE)
 					return 0;
 			} else {
@@ -286,7 +292,7 @@ int main(int argc, char *argv[])
 			if (ret != IMAGE_UTIL_ERROR_NONE)
 				return 0;
 
-			if (!strcmp("decode-mem", argv[1])) {
+			if (!strcmp("decode-mem", argv[1]) && (encode_image_type != IMAGE_UTIL_BMP)) {
 				_write_file(filename, (void *)dst, image_size);
 				free(dst);
 			}

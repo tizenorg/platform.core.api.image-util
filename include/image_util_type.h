@@ -132,6 +132,7 @@ typedef enum {
 	IMAGE_UTIL_JPEG,	 /**< Image format JPEG */
 	IMAGE_UTIL_PNG,		 /**< Image format PNG */
 	IMAGE_UTIL_GIF,		 /**< Image format GIF */
+	IMAGE_UTIL_BMP,		 /**< Image format BMP */
 } image_util_type_e;
 
 /**
