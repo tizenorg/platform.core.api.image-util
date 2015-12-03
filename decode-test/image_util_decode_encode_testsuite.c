@@ -102,7 +102,7 @@ static int _read_file(char *file_name, void **data, unsigned long long *data_siz
 		fp = NULL;
 
 		if (*data) {
-			*data_size = file_size;
+			*data_size = (unsigned long long)file_size;
 			return TRUE;
 		} else {
 			*data_size = 0;
@@ -193,8 +193,11 @@ int main(int argc, char *argv[])
 			if (ret != IMAGE_UTIL_ERROR_NONE)
 				return 0;
 		} else {
-			if (_read_file(argv[3], &src, &src_size))
-				image_util_decode_set_input_buffer(decoded, (unsigned char *)src, src_size);
+			if (_read_file(argv[3], &src, &src_size)) {
+				ret = image_util_decode_set_input_buffer(decoded, (unsigned char *)src, src_size);
+				if (ret != IMAGE_UTIL_ERROR_NONE)
+					return 0;
+			}
 			else
 				return 0;
 		}
@@ -202,8 +205,7 @@ int main(int argc, char *argv[])
 		if (ret != IMAGE_UTIL_ERROR_NONE)
 			return 0;
 
-		if(!strcmp("decode-async", argv[1]))
-		{
+		if(!strcmp("decode-async", argv[1])) {
 			ret = image_util_decode_run_async(decoded, (image_util_decode_completed_cb) decode_completed_cb, NULL);
 			_wait();
 		}
@@ -212,99 +214,94 @@ int main(int argc, char *argv[])
 		if (ret != IMAGE_UTIL_ERROR_NONE)
 			return 0;
 
-
-
+		free(src);
 		ret = image_util_decode_destroy(decoded);
 		if (ret != IMAGE_UTIL_ERROR_NONE)
 			return 0;
-		free(src);
 	} else {
 		fprintf(stderr, "\tunknown command [%s]\n", argv[1]);
 		return 0;
 	}
 
-	if (ret != IMAGE_UTIL_ERROR_NONE) {
-		fprintf(stderr, "\tERROR is occurred %x\n", ret);
-	} else {
-		fprintf(stderr, "\tIMAGE OPERATION SUCCESS\n");
-		if (data) {
-			fprintf(stderr, "\t##Decoded data##: %p\t width: %lu\t height:%lu\n", data, (long unsigned int)image_width, (long unsigned int)image_height);
-			char filename[BUFFER_SIZE] = { 0, }, type[4] = {
-			0,};
-			memset(filename, 0, BUFFER_SIZE);
+	fprintf(stderr, "\tIMAGE OPERATION SUCCESS\n");
+	if (data) {
+		fprintf(stderr, "\t##Decoded data##: %p\t width: %lu\t height:%lu\n", data, (long unsigned int)image_width, (long unsigned int)image_height);
+		char filename[BUFFER_SIZE] = { 0, }, type[4] = {
+		0,};
+		memset(filename, 0, BUFFER_SIZE);
 
-			switch (encode_image_type) {
-			case IMAGE_UTIL_JPEG:
-				snprintf(type, 4, "%s", "jpg");
-				break;
-			case IMAGE_UTIL_PNG:
-				snprintf(type, 4, "%s", "png");
-				break;
-			case IMAGE_UTIL_GIF:
-				snprintf(type, 4, "%s", "gif");
-				break;
-			case IMAGE_UTIL_BMP:
-				snprintf(type, 4, "%s", "bmp");
-				break;
-			default:
-				break;
-			}
-			snprintf(filename, BUFFER_SIZE, "%s%s", DECODE_RESULT_PATH, type);
-
-			ret = image_util_encode_create(encode_image_type, &encoded);
-			if (ret != IMAGE_UTIL_ERROR_NONE)
-				return 0;
-
-			ret = image_util_encode_set_resolution(encoded, image_width, image_height);
-			if (ret != IMAGE_UTIL_ERROR_NONE)
-				return 0;
-
-			if (encode_image_type == IMAGE_UTIL_JPEG) {
-				ret = image_util_encode_set_jpeg_quality(encoded, 100);
-				if (ret != IMAGE_UTIL_ERROR_NONE)
-					return 0;
-			}
-
-			ret = image_util_encode_set_input_buffer(encoded, data);
-			if (ret != IMAGE_UTIL_ERROR_NONE)
-				return 0;
-
-			if (!strcmp("decode-mem", argv[1])) {
-				if (encode_image_type == IMAGE_UTIL_BMP)
-					ret = image_util_encode_set_output_path(encoded, filename);
-				else
-					ret = image_util_encode_set_output_buffer(encoded, &dst);
-				if (ret != IMAGE_UTIL_ERROR_NONE)
-					return 0;
-			} else {
-				ret = image_util_encode_set_output_path(encoded, filename);
-				if (ret != IMAGE_UTIL_ERROR_NONE)
-					return 0;
-			}
-
-			if(!strcmp("decode-async", argv[1]))
-			{
-				ret = image_util_encode_run_async(encoded, (image_util_encode_completed_cb) encode_completed_cb, NULL);
-				_wait();
-			}
-			else
-				ret = image_util_encode_run(encoded, &image_size);
-			if (ret != IMAGE_UTIL_ERROR_NONE)
-				return 0;
-
-			if (!strcmp("decode-mem", argv[1]) && (encode_image_type != IMAGE_UTIL_BMP)) {
-				_write_file(filename, (void *)dst, image_size);
-				free(dst);
-			}
-
-			ret = image_util_encode_destroy(encoded);
-			if (ret != IMAGE_UTIL_ERROR_NONE)
-				return 0;
-
-			free(data);
-		} else {
-			fprintf(stderr, "\tDECODED data is NULL\n");
+		switch (encode_image_type) {
+		case IMAGE_UTIL_JPEG:
+			snprintf(type, 4, "%s", "jpg");
+			break;
+		case IMAGE_UTIL_PNG:
+			snprintf(type, 4, "%s", "png");
+			break;
+		case IMAGE_UTIL_GIF:
+			snprintf(type, 4, "%s", "gif");
+			break;
+		case IMAGE_UTIL_BMP:
+			snprintf(type, 4, "%s", "bmp");
+			break;
+		default:
+			break;
 		}
+		snprintf(filename, BUFFER_SIZE, "%s%s", DECODE_RESULT_PATH, type);
+
+		ret = image_util_encode_create(encode_image_type, &encoded);
+		if (ret != IMAGE_UTIL_ERROR_NONE)
+			return 0;
+
+		ret = image_util_encode_set_resolution(encoded, image_width, image_height);
+		if (ret != IMAGE_UTIL_ERROR_NONE)
+			return 0;
+
+		if (encode_image_type == IMAGE_UTIL_JPEG) {
+			ret = image_util_encode_set_jpeg_quality(encoded, 100);
+			if (ret != IMAGE_UTIL_ERROR_NONE)
+				return 0;
+		}
+
+		ret = image_util_encode_set_input_buffer(encoded, data);
+		if (ret != IMAGE_UTIL_ERROR_NONE)
+			return 0;
+
+		if (!strcmp("decode-mem", argv[1])) {
+			if (encode_image_type == IMAGE_UTIL_BMP)
+				ret = image_util_encode_set_output_path(encoded, filename);
+			else
+				ret = image_util_encode_set_output_buffer(encoded, &dst);
+			if (ret != IMAGE_UTIL_ERROR_NONE)
+				return 0;
+		} else {
+			ret = image_util_encode_set_output_path(encoded, filename);
+			if (ret != IMAGE_UTIL_ERROR_NONE)
+				return 0;
+		}
+
+		if(!strcmp("decode-async", argv[1]))
+		{
+			ret = image_util_encode_run_async(encoded, (image_util_encode_completed_cb) encode_completed_cb, NULL);
+			_wait();
+		}
+		else
+			ret = image_util_encode_run(encoded, &image_size);
+		if (ret != IMAGE_UTIL_ERROR_NONE)
+			return 0;
+
+		if (!strcmp("decode-mem", argv[1]) && (encode_image_type != IMAGE_UTIL_BMP)) {
+			_write_file(filename, (void *)dst, image_size);
+			free(dst);
+		}
+
+		ret = image_util_encode_destroy(encoded);
+		if (ret != IMAGE_UTIL_ERROR_NONE)
+			return 0;
+
+		free(data);
+	} else {
+		fprintf(stderr, "\tDECODED data is NULL\n");
 	}
+
 	return 0;
 }
