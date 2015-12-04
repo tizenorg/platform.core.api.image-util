@@ -168,32 +168,28 @@ int main(int argc, char *argv[])
 	unsigned char *data = NULL;
 	unsigned char *dst = NULL;
 	unsigned long long src_size = 0;
-	int image_type = -1;
 	int encode_image_type = -1;
 
 	if (argc < 4) {
 		fprintf(stderr, "\t[usage]\n");
-		fprintf(stderr, "\t\t1. decode : mm_util_png_testsuite decode image_type filepath encode_image_type\n");
+		fprintf(stderr, "\t\t1. decode : mm_util_png_testsuite decode filepath encode_image_type\n");
 		return 0;
 	}
 
-	image_type = atoi(argv[2]);
-	if(argv[4])
-		encode_image_type = atoi(argv[4]);
-	else
-		encode_image_type = atoi(argv[2]);
+	if(argv[3])
+		encode_image_type = atoi(argv[3]);
 
 	if (!strcmp("decode", argv[1]) || !strcmp("decode-mem", argv[1]) || !strcmp("decode-async", argv[1])) {
-		ret = image_util_decode_create(image_type, &decoded);
+		ret = image_util_decode_create(&decoded);
 		if (ret != IMAGE_UTIL_ERROR_NONE)
 			return 0;
 
 		if (!strcmp("decode", argv[1])) {
-			ret = image_util_decode_set_input_path(decoded, argv[3]);
+			ret = image_util_decode_set_input_path(decoded, argv[2]);
 			if (ret != IMAGE_UTIL_ERROR_NONE)
 				return 0;
 		} else {
-			if (_read_file(argv[3], &src, &src_size)) {
+			if (_read_file(argv[2], &src, &src_size)) {
 				ret = image_util_decode_set_input_buffer(decoded, (unsigned char *)src, src_size);
 				if (ret != IMAGE_UTIL_ERROR_NONE)
 					return 0;
