@@ -933,7 +933,7 @@ static int _image_util_decode_create_bmp_handle(decode_encode_s * handle)
 	return err;
 }
 
-int image_util_decode_create(image_util_type_e image_type, image_util_decode_h * handle)
+int image_util_decode_create(image_util_decode_h * handle)
 {
 	int err = MM_UTIL_ERROR_NONE;
 
@@ -944,12 +944,60 @@ int image_util_decode_create(image_util_type_e image_type, image_util_decode_h *
 	decode_encode_s *_handle = (decode_encode_s *) calloc(1, sizeof(decode_encode_s));
 	image_util_retvm_if((_handle == NULL), IMAGE_UTIL_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY(0x%08x)", IMAGE_UTIL_ERROR_OUT_OF_MEMORY);
 
-	_handle->image_type = image_type;
 	_handle->src_buffer = NULL;
 	_handle->dst_buffer = NULL;
 	_handle->path = NULL;
 	_handle->image_h = 0;
 	_handle->is_decode = TRUE;
+	_handle->image_type = -1;
+
+	*handle = (image_util_decode_h) _handle;
+
+	return _convert_image_util_error_code(__func__, err);
+}
+
+static char _JPEG_HEADER[] = { 0xFF, 0xD8 };
+static char _PNG_HEADER[] = { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a };
+static char _GIF_HEADER[] = { 'G', 'I', 'F' };
+static char _BMP_HEADER[] = { 'B', 'M' };
+
+static int _image_util_decode_create_image_handle(image_util_decode_h handle, const unsigned char *src_buffer)
+{
+	image_util_type_e image_type = -1;
+	static struct
+	{
+		char* header;
+		int size;
+		image_util_type_e image_type;
+	} image_header[] = {
+		{ _JPEG_HEADER, sizeof(_JPEG_HEADER), IMAGE_UTIL_JPEG },
+		{ _PNG_HEADER, sizeof(_PNG_HEADER), IMAGE_UTIL_PNG },
+		{ _GIF_HEADER, sizeof(_GIF_HEADER), IMAGE_UTIL_GIF },
+		{ _BMP_HEADER, sizeof(_BMP_HEADER), IMAGE_UTIL_BMP },
+	};
+	unsigned int i = 0;
+	int err = MM_UTIL_ERROR_NONE;
+	decode_encode_s *_handle = (decode_encode_s *) handle;
+
+	if (_handle == NULL || _handle->is_decode == FALSE) {
+		image_util_error("Invalid Handle");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+	if (src_buffer == NULL) {
+		image_util_error("Invalid input buffer");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+
+	for (i = 0; i < sizeof(image_header)/sizeof(image_header[0]); i++)
+	{
+		if (strncmp((const char *)src_buffer, image_header[i].header, image_header[i].size) == 0)
+		{
+			image_type = image_header[i].image_type;
+			break;
+		}
+	}
+
+	_handle->image_type = image_type;
 
 	switch (image_type) {
 	case IMAGE_UTIL_JPEG:
@@ -965,7 +1013,7 @@ int image_util_decode_create(image_util_type_e image_type, image_util_decode_h *
 		err = _image_util_decode_create_bmp_handle(_handle);
 		break;
 	default:
-		err = MM_UTIL_ERROR_INVALID_PARAMETER;
+		err = MM_UTIL_ERROR_NOT_SUPPORTED_FORMAT;
 		break;
 	}
 
@@ -975,8 +1023,6 @@ int image_util_decode_create(image_util_type_e image_type, image_util_decode_h *
 		return _convert_image_util_error_code(__func__, err);
 	}
 
-	*handle = (image_util_decode_h) _handle;
-
 	return _convert_image_util_error_code(__func__, err);
 }
 
@@ -984,6 +1030,8 @@ int image_util_decode_set_input_path(image_util_decode_h handle, const char *pat
 {
 	int err = IMAGE_UTIL_ERROR_NONE;
 	decode_encode_s *_handle = (decode_encode_s *) handle;
+	FILE *fp = NULL;
+	unsigned char *src_buffer = NULL;
 
 	if (_handle == NULL || _handle->is_decode == FALSE) {
 		image_util_error("Invalid Handle");
@@ -993,6 +1041,26 @@ int image_util_decode_set_input_path(image_util_decode_h handle, const char *pat
 
 	if (_handle->src_buffer)
 		_handle->src_buffer = NULL;
+
+	fp = fopen(path, "r");
+	if (fp == NULL) {
+		image_util_error("File open failed");
+		return IMAGE_UTIL_ERROR_NO_SUCH_FILE;
+	}
+	src_buffer = (void *)malloc(sizeof(_PNG_HEADER));
+	if (!fread(src_buffer, 1, sizeof(_PNG_HEADER), fp)) {
+		image_util_error("File read failed");
+		fclose(fp);
+		fp = NULL;
+		free(src_buffer);
+		return IMAGE_UTIL_ERROR_INVALID_OPERATION;
+	}
+
+	err = _image_util_decode_create_image_handle(_handle, src_buffer);
+
+	fclose(fp);
+	fp = NULL;
+	free(src_buffer);
 
 	_handle->path = path;
 
@@ -1015,6 +1083,8 @@ int image_util_decode_set_input_buffer(image_util_decode_h handle, const unsigne
 
 	if (_handle->path)
 		_handle->path = NULL;
+
+	err = _image_util_decode_create_image_handle(_handle, src_buffer);
 
 	_handle->src_buffer = (void *)src_buffer;
 	_handle->src_size = src_size;
@@ -1396,7 +1466,6 @@ int image_util_decode_destroy(image_util_decode_h handle)
 		}
 		break;
 	default:
-		err = IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 		break;
 	}
 
