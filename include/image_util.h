@@ -992,8 +992,9 @@ int image_util_decode_set_jpeg_downscale(image_util_encode_h handle, image_util_
 * @brief Starts decoding of the image and fills the output buffer set using image_util_decode_set_output_buffer().
 * @since_tizen 3.0
 *
-* @remarks The output will be stored in the pointer set using image_util_decode_set_output_buffer().
-*		The function executes synchronously.
+* @remarks The output will be stored in the pointer set using image_util_decode_set_output_buffer().\n
+*		The function executes synchronously.\n
+*		When any of the @pre functions are not called, IMAGE_UTIL_ERROR_INVALID_PARAMETER is returned.
 *
 * @param[in] handle The handle to image util decoding
 * @param[out] width Width of the decoded image
@@ -1026,7 +1027,8 @@ int image_util_decode_run(image_util_decode_h handle, unsigned long *width, unsi
 * @since_tizen 3.0
 *
 * @remarks The output will be stored in the pointer set using image_util_decode_set_output_buffer().\n
-*		The function executes asynchronously, which contains complete callback.
+*		The function executes asynchronously, which contains complete callback.\n
+*		When any of the @pre functions are not called, IMAGE_UTIL_ERROR_INVALID_PARAMETER is returned.
 *
 * @param[in] handle The handle to image util decoding
 * @param[in] callback The callback function to be invoked
@@ -1138,7 +1140,7 @@ int image_util_encode_set_resolution(image_util_encode_h handle, unsigned long w
 *          Errors would be returned if not supported.
 *
 * @param[in] handle The handle to image util encoding
-* @param[in] colorspace The decoded image colorspace
+* @param[in] colorspace The encoded image colorspace
 *
 * @return @c 0 on success,
 *               otherwise a negative error value
@@ -1304,7 +1306,8 @@ int image_util_encode_set_output_path(image_util_encode_h handle, const char *pa
 * @since_tizen 3.0
 *
 * @remarks One of image_util_encode_set_output_path() or image_util_encode_set_output_buffer() should be set.\n
-*          If both are set then the latest output set is considered.
+*          If both are set then the latest output set is considered.\n
+*          Encoding raw data to bmp output buffer is not supported. Will return IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT if output colorspace is bmp.
 *
 * @param[in] handle The handle to image util encoding
 * @param[in] dst_buffer The output image buffer
@@ -1315,6 +1318,7 @@ int image_util_encode_set_output_path(image_util_encode_h handle, const char *pa
 * @retval #IMAGE_UTIL_ERROR_NONE Successful
 * @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
 * @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+* @retval #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Invalid operation
 *
 * @pre image_util_encode_create()
 *
@@ -1334,8 +1338,9 @@ int image_util_encode_set_output_buffer(image_util_encode_h handle, unsigned cha
 * @brief Starts encoding of the image and fills the output buffer, set using image_util_encode_set_output_buffer() or image_util_encode_set_output_path().
 * @since_tizen 3.0
 *
-* @remarks The output will be stored in the pointer set to image_util_encode_set_output_buffer() or image_util_encode_set_output_path().
-*		The function executes synchronously.
+* @remarks The output will be stored in the pointer set to image_util_encode_set_output_buffer() or image_util_encode_set_output_path().\n
+*		The function executes synchronously.\n
+*		When any of the @pre functions are not called, IMAGE_UTIL_ERROR_INVALID_PARAMETER is returned.
 *
 * @param[in] handle The handle to image util encoding
 * @param[out] size Size of the encoded image
@@ -1368,7 +1373,8 @@ int image_util_encode_run(image_util_encode_h handle, unsigned long long *size);
 * @since_tizen 3.0
 *
 * @remarks The output will be stored in the pointer set to image_util_encode_set_output_buffer() or image_util_encode_set_output_path().\n
-*		The function executes asynchronously, which contains complete callback.
+*		The function executes asynchronously, which contains complete callback.\n
+*		When any of the @pre functions are not called, IMAGE_UTIL_ERROR_INVALID_PARAMETER is returned.
 *
 * @param[in] handle The handle to image util encoding
 * @param[in] callback The callback function to be invoked

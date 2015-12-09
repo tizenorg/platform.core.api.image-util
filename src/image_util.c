@@ -1807,6 +1807,10 @@ int image_util_encode_set_output_buffer(image_util_encode_h handle, unsigned cha
 		image_util_error("Invalid Handle");
 		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 	}
+	if (_handle->image_type == IMAGE_UTIL_BMP) {
+		image_util_error("BMP library does not support encoding to memory");
+		return IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT;
+	}
 	if (dst_buffer == NULL) {
 		image_util_error("Invalid output buffer");
 		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
@@ -1897,7 +1901,7 @@ static int _image_util_encode_internal(decode_encode_s * _handle)
 			if (_handle->path)
 				err = mm_util_encode_bmp_to_file(bmp_data, _handle->path);
 			else {
-				fprintf(stderr, "\tNot yet implemented\n");
+				image_util_error("Not yet implemented");
 				return MM_UTIL_ERROR_INVALID_PARAMETER;
 			}
 
