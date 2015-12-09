@@ -253,7 +253,7 @@ int main(int argc, char *argv[])
 			return 0;
 
 		if (encode_image_type == IMAGE_UTIL_JPEG) {
-			ret = image_util_encode_set_jpeg_quality(encoded, 100);
+			ret = image_util_encode_set_quality(encoded, 100);
 			if (ret != IMAGE_UTIL_ERROR_NONE)
 				return 0;
 		}

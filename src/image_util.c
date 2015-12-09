@@ -1500,7 +1500,7 @@ static int _image_util_encode_create_jpeg_handle(decode_encode_s * handle)
 
 	handle->image_h = (MMHandleType) _handle;
 	handle->colorspace = IMAGE_UTIL_COLORSPACE_RGBA8888;
-	handle->quality = 20;
+	handle->quality = 75;
 
 	return err;
 }
@@ -1713,7 +1713,7 @@ int image_util_encode_set_colorspace(image_util_encode_h handle, image_util_colo
 	return err;
 }
 
-int image_util_encode_set_jpeg_quality(image_util_encode_h handle, int quality)
+int image_util_encode_set_quality(image_util_encode_h handle, int quality)
 {
 	int err = IMAGE_UTIL_ERROR_NONE;
 	decode_encode_s *_handle = (decode_encode_s *) handle;
