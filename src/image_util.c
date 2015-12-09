@@ -32,113 +32,112 @@
 
 #define IMAGE_UTIL_SAFE_FREE(src)	{ if (src) {free(src); src = NULL; } }
 
-
 static int _convert_colorspace_tbl[] = {
 	MM_UTIL_IMG_FMT_YUV420,		/* IMAGE_UTIL_COLORSPACE_YUV420 */
 	MM_UTIL_IMG_FMT_YUV422,		/* IMAGE_UTIL_COLORSPACE_YUV422 */
-	MM_UTIL_IMG_FMT_I420,			/* IMAGE_UTIL_COLORSPACE_I420 */
-	MM_UTIL_IMG_FMT_NV12,			/* IMAGE_UTIL_COLORSPACE_NV12 */
-	MM_UTIL_IMG_FMT_UYVY,			/* IMAGE_UTIL_COLORSPACE_UYVY */
-	MM_UTIL_IMG_FMT_YUYV,			/* IMAGE_UTIL_COLORSPACE_YUYV */
+	MM_UTIL_IMG_FMT_I420,		/* IMAGE_UTIL_COLORSPACE_I420 */
+	MM_UTIL_IMG_FMT_NV12,		/* IMAGE_UTIL_COLORSPACE_NV12 */
+	MM_UTIL_IMG_FMT_UYVY,		/* IMAGE_UTIL_COLORSPACE_UYVY */
+	MM_UTIL_IMG_FMT_YUYV,		/* IMAGE_UTIL_COLORSPACE_YUYV */
 	MM_UTIL_IMG_FMT_RGB565,		/* IMAGE_UTIL_COLORSPACE_RGB565 */
 	MM_UTIL_IMG_FMT_RGB888,		/* IMAGE_UTIL_COLORSPACE_RGB888 */
-	MM_UTIL_IMG_FMT_ARGB8888,		/* IMAGE_UTIL_COLORSPACE_ARGB8888 */
-	MM_UTIL_IMG_FMT_BGRA8888,		/* IMAGE_UTIL_COLORSPACE_BGRA8888 */
-	MM_UTIL_IMG_FMT_RGBA8888,		/* IMAGE_UTIL_COLORSPACE_RGBA8888 */
-	MM_UTIL_IMG_FMT_BGRX8888,		/* IMAGE_UTIL_COLORSPACE_BGRX8888 */
-	MM_UTIL_JPEG_FMT_NV21,			/* IMAGE_UTIL_COLORSPACE_NV12 */
-	MM_UTIL_JPEG_FMT_NV16,			/* IMAGE_UTIL_COLORSPACE_NV16 */
-	MM_UTIL_JPEG_FMT_NV61,			/* IMAGE_UTIL_COLORSPACE_NV61 */
+	MM_UTIL_IMG_FMT_ARGB8888,	/* IMAGE_UTIL_COLORSPACE_ARGB8888 */
+	MM_UTIL_IMG_FMT_BGRA8888,	/* IMAGE_UTIL_COLORSPACE_BGRA8888 */
+	MM_UTIL_IMG_FMT_RGBA8888,	/* IMAGE_UTIL_COLORSPACE_RGBA8888 */
+	MM_UTIL_IMG_FMT_BGRX8888,	/* IMAGE_UTIL_COLORSPACE_BGRX8888 */
+	MM_UTIL_JPEG_FMT_NV21,		/* IMAGE_UTIL_COLORSPACE_NV12 */
+	MM_UTIL_JPEG_FMT_NV16,		/* IMAGE_UTIL_COLORSPACE_NV16 */
+	MM_UTIL_JPEG_FMT_NV61,		/* IMAGE_UTIL_COLORSPACE_NV61 */
 };
 
 static int _convert_encode_colorspace_tbl[] = {
-	MM_UTIL_JPEG_FMT_YUV420						,	/* IMAGE_UTIL_COLORSPACE_YUV420 */
-	-1											,	/* IMAGE_UTIL_COLORSPACE_YUV422 */
-	MM_UTIL_JPEG_FMT_YUV420						,	/* IMAGE_UTIL_COLORSPACE_I420 */
-	MM_UTIL_JPEG_FMT_NV12						,	/* IMAGE_UTIL_COLORSPACE_NV12 */
-	-1											,	/* IMAGE_UTIL_COLORSPACE_UYVY */
-	-1											,	/* IMAGE_UTIL_COLORSPACE_YUYV */
-	-1											,	/* IMAGE_UTIL_COLORSPACE_RGB565 */
-	MM_UTIL_JPEG_FMT_RGB888						,	/* IMAGE_UTIL_COLORSPACE_RGB888 */
-	MM_UTIL_JPEG_FMT_ARGB8888					,	/* IMAGE_UTIL_COLORSPACE_ARGB8888 */
-	MM_UTIL_JPEG_FMT_BGRA8888					,	/* IMAGE_UTIL_COLORSPACE_BGRA8888 */
-	MM_UTIL_JPEG_FMT_RGBA8888					,	/* IMAGE_UTIL_COLORSPACE_RGBA8888 */
-	-1											,	/* IMAGE_UTIL_COLORSPACE_BGRX8888 */
-	-1											,	/* IMAGE_UTIL_COLORSPACE_NV21 */
-	-1											,	/* IMAGE_UTIL_COLORSPACE_NV16 */
-	-1											,	/* IMAGE_UTIL_COLORSPACE_NV61 */
+	MM_UTIL_JPEG_FMT_YUV420,	/* IMAGE_UTIL_COLORSPACE_YUV420 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_YUV422 */
+	MM_UTIL_JPEG_FMT_YUV420,	/* IMAGE_UTIL_COLORSPACE_I420 */
+	MM_UTIL_JPEG_FMT_NV12,		/* IMAGE_UTIL_COLORSPACE_NV12 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_UYVY */
+	-1,							/* IMAGE_UTIL_COLORSPACE_YUYV */
+	-1,							/* IMAGE_UTIL_COLORSPACE_RGB565 */
+	MM_UTIL_JPEG_FMT_RGB888,	/* IMAGE_UTIL_COLORSPACE_RGB888 */
+	MM_UTIL_JPEG_FMT_ARGB8888,	/* IMAGE_UTIL_COLORSPACE_ARGB8888 */
+	MM_UTIL_JPEG_FMT_BGRA8888,	/* IMAGE_UTIL_COLORSPACE_BGRA8888 */
+	MM_UTIL_JPEG_FMT_RGBA8888,	/* IMAGE_UTIL_COLORSPACE_RGBA8888 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_BGRX8888 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_NV21 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_NV16 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_NV61 */
 };
 
 static int _convert_jpeg_colorspace_tbl[] = {
-	MM_UTIL_JPEG_FMT_YUV420						,	/* IMAGE_UTIL_COLORSPACE_YUV420 */
-	-1											,	/* IMAGE_UTIL_COLORSPACE_YUV422 */
-	MM_UTIL_JPEG_FMT_YUV420						,	/* IMAGE_UTIL_COLORSPACE_I420 */
-	MM_UTIL_JPEG_FMT_NV12						,	/* IMAGE_UTIL_COLORSPACE_NV12 */
-	-1											,	/* IMAGE_UTIL_COLORSPACE_UYVY */
-	-1											,	/* IMAGE_UTIL_COLORSPACE_YUYV */
-	-1											,	/* IMAGE_UTIL_COLORSPACE_RGB565 */
-	MM_UTIL_JPEG_FMT_RGB888						,	/* IMAGE_UTIL_COLORSPACE_RGB888 */
-	MM_UTIL_JPEG_FMT_ARGB8888					,	/* IMAGE_UTIL_COLORSPACE_ARGB8888 */
-	MM_UTIL_JPEG_FMT_BGRA8888					,	/* IMAGE_UTIL_COLORSPACE_BGRA8888 */
-	MM_UTIL_JPEG_FMT_RGBA8888					,	/* IMAGE_UTIL_COLORSPACE_RGBA8888 */
-	-1											,	/* IMAGE_UTIL_COLORSPACE_BGRX8888 */
-	-1											,	/* IMAGE_UTIL_COLORSPACE_NV21 */
-	-1											,	/* IMAGE_UTIL_COLORSPACE_NV16 */
-	-1											,	/* IMAGE_UTIL_COLORSPACE_NV61 */
+	MM_UTIL_JPEG_FMT_YUV420,	/* IMAGE_UTIL_COLORSPACE_YUV420 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_YUV422 */
+	MM_UTIL_JPEG_FMT_YUV420,	/* IMAGE_UTIL_COLORSPACE_I420 */
+	MM_UTIL_JPEG_FMT_NV12,		/* IMAGE_UTIL_COLORSPACE_NV12 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_UYVY */
+	-1,							/* IMAGE_UTIL_COLORSPACE_YUYV */
+	-1,							/* IMAGE_UTIL_COLORSPACE_RGB565 */
+	MM_UTIL_JPEG_FMT_RGB888,	/* IMAGE_UTIL_COLORSPACE_RGB888 */
+	MM_UTIL_JPEG_FMT_ARGB8888,	/* IMAGE_UTIL_COLORSPACE_ARGB8888 */
+	MM_UTIL_JPEG_FMT_BGRA8888,	/* IMAGE_UTIL_COLORSPACE_BGRA8888 */
+	MM_UTIL_JPEG_FMT_RGBA8888,	/* IMAGE_UTIL_COLORSPACE_RGBA8888 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_BGRX8888 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_NV21 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_NV16 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_NV61 */
 };
 
 static int _convert_png_colorspace_tbl[] = {
-	-1					,	/* IMAGE_UTIL_COLORSPACE_YUV420 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_YUV422 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_I420 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_NV12 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_UYVY */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_YUYV */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_RGB565 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_RGB888 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_ARGB8888 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_BGRA8888 */
-	MM_UTIL_PNG_COLOR_TYPE_RGB_ALPHA	,	/* IMAGE_UTIL_COLORSPACE_RGBA8888 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_BGRX8888 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_NV21 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_NV16 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_NV61 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_YUV420 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_YUV422 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_I420 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_NV12 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_UYVY */
+	-1,							/* IMAGE_UTIL_COLORSPACE_YUYV */
+	-1,							/* IMAGE_UTIL_COLORSPACE_RGB565 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_RGB888 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_ARGB8888 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_BGRA8888 */
+	MM_UTIL_PNG_COLOR_TYPE_RGB_ALPHA,	/* IMAGE_UTIL_COLORSPACE_RGBA8888 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_BGRX8888 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_NV21 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_NV16 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_NV61 */
 };
 
 static int _convert_gif_colorspace_tbl[] = {
-	-1					,	/* IMAGE_UTIL_COLORSPACE_YUV420 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_YUV422 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_I420 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_NV12 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_UYVY */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_YUYV */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_RGB565 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_RGB888 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_ARGB8888 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_BGRA8888 */
-	MM_UTIL_GIF_FMT_RGBA8888		,	/* IMAGE_UTIL_COLORSPACE_RGBA8888 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_BGRX8888 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_NV21 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_NV16 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_NV61 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_YUV420 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_YUV422 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_I420 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_NV12 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_UYVY */
+	-1,							/* IMAGE_UTIL_COLORSPACE_YUYV */
+	-1,							/* IMAGE_UTIL_COLORSPACE_RGB565 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_RGB888 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_ARGB8888 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_BGRA8888 */
+	MM_UTIL_GIF_FMT_RGBA8888,	/* IMAGE_UTIL_COLORSPACE_RGBA8888 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_BGRX8888 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_NV21 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_NV16 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_NV61 */
 };
 
 static int _convert_bmp_colorspace_tbl[] = {
-	-1					,	/* IMAGE_UTIL_COLORSPACE_YUV420 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_YUV422 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_I420 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_NV12 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_UYVY */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_YUYV */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_RGB565 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_RGB888 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_ARGB8888 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_BGRA8888 */
-	MM_UTIL_BMP_FMT_RGBA8888		,	/* IMAGE_UTIL_COLORSPACE_RGBA8888 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_BGRX8888 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_NV21 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_NV16 */
-	-1					,	/* IMAGE_UTIL_COLORSPACE_NV61 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_YUV420 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_YUV422 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_I420 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_NV12 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_UYVY */
+	-1,							/* IMAGE_UTIL_COLORSPACE_YUYV */
+	-1,							/* IMAGE_UTIL_COLORSPACE_RGB565 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_RGB888 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_ARGB8888 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_BGRA8888 */
+	MM_UTIL_BMP_FMT_RGBA8888,	/* IMAGE_UTIL_COLORSPACE_RGBA8888 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_BGRX8888 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_NV21 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_NV16 */
+	-1,							/* IMAGE_UTIL_COLORSPACE_NV61 */
 };
 
 static int _convert_decode_scale_tbl[] = {
@@ -208,10 +207,10 @@ static image_util_error_e _image_util_error_convert(int error)
 	}
 }
 
-static void _image_util_transform_completed_cb(media_packet_h *dst, int error, void *user_data)
+static void _image_util_transform_completed_cb(media_packet_h * dst, int error, void *user_data)
 {
 	int error_value = IMAGE_UTIL_ERROR_NONE;
-	image_util_cb_s *_util_cb = (image_util_cb_s *)user_data;
+	image_util_cb_s *_util_cb = (image_util_cb_s *) user_data;
 
 	if ((_util_cb != NULL) && (_util_cb->image_processing_completed_cb != NULL)) {
 		error_value = _image_util_error_convert(error);
@@ -221,7 +220,7 @@ static void _image_util_transform_completed_cb(media_packet_h *dst, int error, v
 	return;
 }
 
-static int _image_util_create_transform_handle(transformation_s *handle)
+static int _image_util_create_transform_handle(transformation_s * handle)
 {
 	int err = MM_UTIL_ERROR_NONE;
 	MMHandleType image_h;
@@ -269,7 +268,7 @@ int image_util_foreach_supported_jpeg_colorspace(image_util_supported_jpeg_color
 	return IMAGE_UTIL_ERROR_NONE;
 }
 
-int image_util_transform_create(transformation_h *handle)
+int image_util_transform_create(transformation_h * handle)
 {
 	int err = MM_UTIL_ERROR_NONE;
 
@@ -277,7 +276,7 @@ int image_util_transform_create(transformation_h *handle)
 
 	image_util_retvm_if((handle == NULL), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid Handle");
 
-	transformation_s *_handle = (transformation_s *)calloc(1, sizeof(transformation_s));
+	transformation_s *_handle = (transformation_s *) calloc(1, sizeof(transformation_s));
 	image_util_retvm_if((_handle == NULL), IMAGE_UTIL_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY(0x%08x)", IMAGE_UTIL_ERROR_OUT_OF_MEMORY);
 
 	_handle->colorspace = -1;
@@ -285,9 +284,9 @@ int image_util_transform_create(transformation_h *handle)
 	_handle->image_h = 0;
 	_handle->hardware_acceleration = false;
 	_handle->set_convert = false;
-	_handle->set_resize  = false;
+	_handle->set_resize = false;
 	_handle->set_rotate = false;
-	_handle->set_crop  = false;
+	_handle->set_crop = false;
 
 	err = _image_util_create_transform_handle(_handle);
 	if (err != MM_UTIL_ERROR_NONE) {
@@ -296,15 +295,15 @@ int image_util_transform_create(transformation_h *handle)
 		return _convert_image_util_error_code(__func__, err);
 	}
 
-	*handle = (transformation_h)_handle;
+	*handle = (transformation_h) _handle;
 
 	return _convert_image_util_error_code(__func__, err);
 }
 
-int  image_util_transform_set_hardware_acceleration(transformation_h handle, bool mode)
+int image_util_transform_set_hardware_acceleration(transformation_h handle, bool mode)
 {
 	int err = MM_UTIL_ERROR_NONE;
-	transformation_s *_handle = (transformation_s *)handle;
+	transformation_s *_handle = (transformation_s *) handle;
 
 	image_util_debug("Set hardware_acceleration %d", mode);
 
@@ -328,7 +327,7 @@ int  image_util_transform_set_hardware_acceleration(transformation_h handle, boo
 int image_util_transform_set_colorspace(transformation_h handle, image_util_colorspace_e colorspace)
 {
 	int err = MM_UTIL_ERROR_NONE;
-	transformation_s *_handle = (transformation_s *)handle;
+	transformation_s *_handle = (transformation_s *) handle;
 
 	image_util_debug("Set colorspace_convert_info [%d]", colorspace);
 
@@ -349,7 +348,7 @@ int image_util_transform_set_colorspace(transformation_h handle, image_util_colo
 int image_util_transform_set_resolution(transformation_h handle, unsigned int width, unsigned int height)
 {
 	int err = MM_UTIL_ERROR_NONE;
-	transformation_s *_handle = (transformation_s *)handle;
+	transformation_s *_handle = (transformation_s *) handle;
 
 	image_util_debug("Set resize_info w[%d] h[%d]", width, height);
 
@@ -364,7 +363,7 @@ int image_util_transform_set_resolution(transformation_h handle, unsigned int wi
 	}
 	_handle->width = width;
 	_handle->height = height;
-	_handle->set_resize  = true;
+	_handle->set_resize = true;
 
 	return _convert_image_util_error_code(__func__, err);
 }
@@ -372,7 +371,7 @@ int image_util_transform_set_resolution(transformation_h handle, unsigned int wi
 int image_util_transform_set_rotation(transformation_h handle, image_util_rotation_e rotation)
 {
 	int err = MM_UTIL_ERROR_NONE;
-	transformation_s *_handle = (transformation_s *)handle;
+	transformation_s *_handle = (transformation_s *) handle;
 
 	image_util_debug("Set rotate_info [%d]", rotation);
 
@@ -392,7 +391,7 @@ int image_util_transform_set_rotation(transformation_h handle, image_util_rotati
 int image_util_transform_set_crop_area(transformation_h handle, unsigned int start_x, unsigned int start_y, unsigned int end_x, unsigned int end_y)
 {
 	int err = MM_UTIL_ERROR_NONE;
-	transformation_s *_handle = (transformation_s *)handle;
+	transformation_s *_handle = (transformation_s *) handle;
 	int dest_width;
 	int dest_height;
 
@@ -414,15 +413,15 @@ int image_util_transform_set_crop_area(transformation_h handle, unsigned int sta
 	_handle->start_y = start_y;
 	_handle->end_x = end_x;
 	_handle->end_y = end_y;
-	_handle->set_crop  = true;
+	_handle->set_crop = true;
 
 	return _convert_image_util_error_code(__func__, err);
 }
 
-int image_util_transform_get_colorspace(transformation_h handle, image_util_colorspace_e *colorspace)
+int image_util_transform_get_colorspace(transformation_h handle, image_util_colorspace_e * colorspace)
 {
 	int ret = IMAGE_UTIL_ERROR_NONE;
-	transformation_s *_handle = (transformation_s *)handle;
+	transformation_s *_handle = (transformation_s *) handle;
 
 	image_util_debug("Get colorspace_convert_info [%d]", colorspace);
 
@@ -448,7 +447,7 @@ int image_util_transform_get_colorspace(transformation_h handle, image_util_colo
 int image_util_transform_get_resolution(transformation_h handle, unsigned int *width, unsigned int *height)
 {
 	int ret = IMAGE_UTIL_ERROR_NONE;
-	transformation_s *_handle = (transformation_s *)handle;
+	transformation_s *_handle = (transformation_s *) handle;
 
 	image_util_debug("Set resize_info w[%d] h[%d]", width, height);
 
@@ -473,10 +472,10 @@ int image_util_transform_get_resolution(transformation_h handle, unsigned int *w
 	return ret;
 }
 
-int image_util_transform_get_rotation(transformation_h handle, image_util_rotation_e *rotation)
+int image_util_transform_get_rotation(transformation_h handle, image_util_rotation_e * rotation)
 {
 	int ret = IMAGE_UTIL_ERROR_NONE;
-	transformation_s *_handle = (transformation_s *)handle;
+	transformation_s *_handle = (transformation_s *) handle;
 
 	image_util_debug("Set rotate_info [%d]", rotation);
 
@@ -503,7 +502,7 @@ int image_util_transform_get_rotation(transformation_h handle, image_util_rotati
 int image_util_transform_get_crop_area(transformation_h handle, unsigned int *start_x, unsigned int *start_y, unsigned int *end_x, unsigned int *end_y)
 {
 	int ret = IMAGE_UTIL_ERROR_NONE;
-	transformation_s *_handle = (transformation_s *)handle;
+	transformation_s *_handle = (transformation_s *) handle;
 
 	if (_handle == NULL) {
 		image_util_error("Invalid Handle");
@@ -531,7 +530,7 @@ int image_util_transform_get_crop_area(transformation_h handle, unsigned int *st
 int image_util_transform_run(transformation_h handle, media_packet_h src, image_util_transform_completed_cb completed_cb, void *user_data)
 {
 	int err = MM_UTIL_ERROR_NONE;
-	transformation_s *_handle = (transformation_s *)handle;
+	transformation_s *_handle = (transformation_s *) handle;
 
 	image_util_debug("image_util_transform");
 
@@ -544,14 +543,14 @@ int image_util_transform_run(transformation_h handle, media_packet_h src, image_
 		IMAGE_UTIL_SAFE_FREE(_handle->_util_cb);
 		_handle->_util_cb = NULL;
 	}
-	_handle->_util_cb = (image_util_cb_s *)calloc(1, sizeof(image_util_cb_s));
+	_handle->_util_cb = (image_util_cb_s *) calloc(1, sizeof(image_util_cb_s));
 	image_util_retvm_if((_handle->_util_cb == NULL), IMAGE_UTIL_ERROR_OUT_OF_MEMORY, "Out of memory");
 
 	_handle->_util_cb->user_data = user_data;
 	_handle->_util_cb->image_processing_completed_cb = completed_cb;
 
 	if (_handle->_util_cb)
-		err = mm_util_transform(_handle->image_h, src, (mm_util_completed_callback)_image_util_transform_completed_cb, (void *)_handle->_util_cb);
+		err = mm_util_transform(_handle->image_h, src, (mm_util_completed_callback) _image_util_transform_completed_cb, (void *)_handle->_util_cb);
 
 	return _convert_image_util_error_code(__func__, err);
 }
@@ -559,7 +558,7 @@ int image_util_transform_run(transformation_h handle, media_packet_h src, image_
 int image_util_transform_destroy(transformation_h handle)
 {
 	int err = MM_UTIL_ERROR_NONE;
-	transformation_s *_handle = (transformation_s *)handle;
+	transformation_s *_handle = (transformation_s *) handle;
 
 	image_util_debug("image_util_destroy");
 
@@ -576,7 +575,7 @@ int image_util_transform_destroy(transformation_h handle)
 	return _convert_image_util_error_code(__func__, err);
 }
 
-int image_util_convert_colorspace(unsigned char *dest, image_util_colorspace_e dest_colorspace, const unsigned char *src,  int width, int height, image_util_colorspace_e src_colorspace)
+int image_util_convert_colorspace(unsigned char *dest, image_util_colorspace_e dest_colorspace, const unsigned char *src, int width, int height, image_util_colorspace_e src_colorspace)
 {
 	int err = MM_UTIL_ERROR_NONE;
 
@@ -590,8 +589,7 @@ int image_util_convert_colorspace(unsigned char *dest, image_util_colorspace_e d
 	return _convert_image_util_error_code(__func__, err);
 }
 
-
-int image_util_calculate_buffer_size(int width, int height, image_util_colorspace_e colorspace , unsigned int *size)
+int image_util_calculate_buffer_size(int width, int height, image_util_colorspace_e colorspace, unsigned int *size)
 {
 	int err = MM_UTIL_ERROR_NONE;
 
@@ -652,7 +650,7 @@ int image_util_crop(unsigned char *dest, int x, int y, int *width, int *height, 
 	image_util_retvm_if((src == NULL), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "src is null");
 	image_util_retvm_if((colorspace < 0 || colorspace >= sizeof(_convert_colorspace_tbl) / sizeof(int)), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid colorspace");
 	image_util_retvm_if((width == NULL || height == NULL), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "width or height is null");
-	image_util_retvm_if((src_width <= x  || src_height <= y || src_width < x + *width || src_height < y + *height), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid crop area");
+	image_util_retvm_if((src_width <= x || src_height <= y || src_width < x + *width || src_height < y + *height), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid crop area");
 
 	unsigned int dest_w, dest_h;
 	dest_w = *width;
@@ -778,7 +776,7 @@ int image_util_decode_jpeg_from_memory_with_downscale(const unsigned char *jpeg_
 	return _convert_image_util_error_code(__func__, err);
 }
 
-int image_util_encode_jpeg(const unsigned char *buffer, int width, int height, image_util_colorspace_e colorspace,  int quality, const char *path)
+int image_util_encode_jpeg(const unsigned char *buffer, int width, int height, image_util_colorspace_e colorspace, int quality, const char *path)
 {
 	int err = MM_UTIL_ERROR_NONE;
 
@@ -792,7 +790,7 @@ int image_util_encode_jpeg(const unsigned char *buffer, int width, int height, i
 	return _convert_image_util_error_code(__func__, err);
 }
 
-int image_util_encode_jpeg_to_memory(const unsigned char *image_buffer, int width, int height, image_util_colorspace_e colorspace, int quality,  unsigned char **jpeg_buffer, unsigned int *jpeg_size)
+int image_util_encode_jpeg_to_memory(const unsigned char *image_buffer, int width, int height, image_util_colorspace_e colorspace, int quality, unsigned char **jpeg_buffer, unsigned int *jpeg_size)
 {
 	int err = MM_UTIL_ERROR_NONE;
 	int isize = 0;
@@ -817,7 +815,7 @@ int image_util_extract_color_from_memory(const unsigned char *image_buffer, int 
 	image_util_retvm_if((image_buffer == NULL), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "image_buffer     is null");
 
 	unsigned char r_color, g_color, b_color;
-	ret = mm_util_cv_extract_representative_color((void *)image_buffer, width, height, &r_color, &    g_color, &b_color);
+	ret = mm_util_cv_extract_representative_color((void *)image_buffer, width, height, &r_color, &g_color, &b_color);
 
 	*rgb_r = r_color;
 	*rgb_g = g_color;
@@ -834,37 +832,37 @@ int image_util_foreach_supported_colorspace(image_util_type_e image_type, image_
 
 	switch (image_type) {
 	case IMAGE_UTIL_JPEG:
-	/* RGB has higher precedence than YUV */
-	for (i = sizeof(_convert_jpeg_colorspace_tbl) / sizeof(int) - 1; i >= 0; i--) {
-		if (_convert_jpeg_colorspace_tbl[i] != -1)
-			if (false == callback(i, user_data))
-				return IMAGE_UTIL_ERROR_NONE;
+		/* RGB has higher precedence than YUV */
+		for (i = sizeof(_convert_jpeg_colorspace_tbl) / sizeof(int) - 1; i >= 0; i--) {
+			if (_convert_jpeg_colorspace_tbl[i] != -1)
+				if (false == callback(i, user_data))
+					return IMAGE_UTIL_ERROR_NONE;
 
-	}
+		}
 		break;
 	case IMAGE_UTIL_PNG:
-	for (i = sizeof(_convert_png_colorspace_tbl) / sizeof(int) - 1; i >= 0; i--) {
-		if (_convert_png_colorspace_tbl[i] != -1)
-			if (false == callback(i, user_data))
-				return IMAGE_UTIL_ERROR_NONE;
+		for (i = sizeof(_convert_png_colorspace_tbl) / sizeof(int) - 1; i >= 0; i--) {
+			if (_convert_png_colorspace_tbl[i] != -1)
+				if (false == callback(i, user_data))
+					return IMAGE_UTIL_ERROR_NONE;
 
-	}
+		}
 		break;
 	case IMAGE_UTIL_GIF:
-	for (i = sizeof(_convert_gif_colorspace_tbl) / sizeof(int) - 1; i >= 0; i--) {
-		if (_convert_gif_colorspace_tbl[i] != -1)
-			if (false == callback(i, user_data))
-				return IMAGE_UTIL_ERROR_NONE;
+		for (i = sizeof(_convert_gif_colorspace_tbl) / sizeof(int) - 1; i >= 0; i--) {
+			if (_convert_gif_colorspace_tbl[i] != -1)
+				if (false == callback(i, user_data))
+					return IMAGE_UTIL_ERROR_NONE;
 
-	}
+		}
 		break;
 	case IMAGE_UTIL_BMP:
-	for (i = sizeof(_convert_bmp_colorspace_tbl) / sizeof(int) - 1; i >= 0; i--) {
-		if (_convert_bmp_colorspace_tbl[i] != -1)
-			if (false == callback(i, user_data))
-				return IMAGE_UTIL_ERROR_NONE;
+		for (i = sizeof(_convert_bmp_colorspace_tbl) / sizeof(int) - 1; i >= 0; i--) {
+			if (_convert_bmp_colorspace_tbl[i] != -1)
+				if (false == callback(i, user_data))
+					return IMAGE_UTIL_ERROR_NONE;
 
-	}
+		}
 		break;
 	default:
 		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
@@ -964,17 +962,20 @@ static char _BMP_HEADER[] = { 'B', 'M' };
 static int _image_util_decode_create_image_handle(image_util_decode_h handle, const unsigned char *src_buffer)
 {
 	image_util_type_e image_type = -1;
-	static struct
-	{
-		char* header;
+	static struct {
+		char *header;
 		int size;
 		image_util_type_e image_type;
 	} image_header[] = {
-		{ _JPEG_HEADER, sizeof(_JPEG_HEADER), IMAGE_UTIL_JPEG },
-		{ _PNG_HEADER, sizeof(_PNG_HEADER), IMAGE_UTIL_PNG },
-		{ _GIF_HEADER, sizeof(_GIF_HEADER), IMAGE_UTIL_GIF },
-		{ _BMP_HEADER, sizeof(_BMP_HEADER), IMAGE_UTIL_BMP },
-	};
+		{
+		_JPEG_HEADER, sizeof(_JPEG_HEADER), IMAGE_UTIL_JPEG}
+		, {
+		_PNG_HEADER, sizeof(_PNG_HEADER), IMAGE_UTIL_PNG}
+		, {
+		_GIF_HEADER, sizeof(_GIF_HEADER), IMAGE_UTIL_GIF}
+		, {
+		_BMP_HEADER, sizeof(_BMP_HEADER), IMAGE_UTIL_BMP}
+	,};
 	unsigned int i = 0;
 	int err = MM_UTIL_ERROR_NONE;
 	decode_encode_s *_handle = (decode_encode_s *) handle;
@@ -988,10 +989,8 @@ static int _image_util_decode_create_image_handle(image_util_decode_h handle, co
 		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 	}
 
-	for (i = 0; i < sizeof(image_header)/sizeof(image_header[0]); i++)
-	{
-		if (strncmp((const char *)src_buffer, image_header[i].header, image_header[i].size) == 0)
-		{
+	for (i = 0; i < sizeof(image_header) / sizeof(image_header[0]); i++) {
+		if (strncmp((const char *)src_buffer, image_header[i].header, image_header[i].size) == 0) {
 			image_type = image_header[i].image_type;
 			break;
 		}
@@ -1124,16 +1123,16 @@ int image_util_decode_set_colorspace(image_util_encode_h handle, image_util_colo
 	image_util_retvm_if((colorspace < 0 || colorspace >= sizeof(_convert_jpeg_colorspace_tbl) / sizeof(int)), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid colorspace");
 	switch (_handle->image_type) {
 	case IMAGE_UTIL_JPEG:
-	image_util_retvm_if((_convert_jpeg_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
+		image_util_retvm_if((_convert_jpeg_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
 		break;
 	case IMAGE_UTIL_PNG:
-	image_util_retvm_if((_convert_png_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
+		image_util_retvm_if((_convert_png_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
 		break;
 	case IMAGE_UTIL_GIF:
-	image_util_retvm_if((_convert_gif_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
+		image_util_retvm_if((_convert_gif_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
 		break;
 	case IMAGE_UTIL_BMP:
-	image_util_retvm_if((_convert_bmp_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
+		image_util_retvm_if((_convert_bmp_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
 		break;
 	default:
 		image_util_error("Invalid image type");
@@ -1185,8 +1184,7 @@ static int _image_util_decode_internal(decode_encode_s * _handle)
 					err = mm_util_decode_from_jpeg_file_with_downscale(jpeg_data, _handle->path, _convert_jpeg_colorspace_tbl[_handle->colorspace], _convert_decode_scale_tbl[_handle->down_scale]);
 				else
 					err = mm_util_decode_from_jpeg_file(jpeg_data, _handle->path, _convert_jpeg_colorspace_tbl[_handle->colorspace]);
-			}
-			else {
+			} else {
 				if (_handle->down_scale < sizeof(image_util_scale_e))
 					err = mm_util_decode_from_jpeg_memory_with_downscale(jpeg_data, _handle->src_buffer, _handle->src_size, _convert_jpeg_colorspace_tbl[_handle->colorspace], _convert_decode_scale_tbl[_handle->down_scale]);
 				else
@@ -1334,9 +1332,9 @@ gpointer _image_util_decode_thread(gpointer data)
 		}
 
 		err = _image_util_decode_internal(_handle);
-		if(err == MM_UTIL_ERROR_NONE) {
+		if (err == MM_UTIL_ERROR_NONE) {
 			image_util_debug("Success - decode_internal");
-		} else{
+		} else {
 			image_util_error("Error - decode_internal");
 		}
 		if (_handle->_decode_cb) {
@@ -1692,16 +1690,16 @@ int image_util_encode_set_colorspace(image_util_encode_h handle, image_util_colo
 	image_util_retvm_if((colorspace < 0 || colorspace >= sizeof(_convert_jpeg_colorspace_tbl) / sizeof(int)), IMAGE_UTIL_ERROR_INVALID_PARAMETER, "Invalid colorspace");
 	switch (_handle->image_type) {
 	case IMAGE_UTIL_JPEG:
-	image_util_retvm_if((_convert_jpeg_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
+		image_util_retvm_if((_convert_jpeg_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
 		break;
 	case IMAGE_UTIL_PNG:
-	image_util_retvm_if((_convert_png_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
+		image_util_retvm_if((_convert_png_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
 		break;
 	case IMAGE_UTIL_GIF:
-	image_util_retvm_if((_convert_gif_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
+		image_util_retvm_if((_convert_gif_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
 		break;
 	case IMAGE_UTIL_BMP:
-	image_util_retvm_if((_convert_bmp_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
+		image_util_retvm_if((_convert_bmp_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
 		break;
 	default:
 		image_util_error("Invalid image type");
@@ -1832,9 +1830,9 @@ static int _image_util_encode_internal(decode_encode_s * _handle)
 	case IMAGE_UTIL_JPEG:
 		{
 			if (_handle->path)
-				err = mm_util_jpeg_encode_to_file (_handle->path, _handle->src_buffer, _handle->width, _handle->height, _convert_jpeg_colorspace_tbl[_handle->colorspace], _handle->quality);
+				err = mm_util_jpeg_encode_to_file(_handle->path, _handle->src_buffer, _handle->width, _handle->height, _convert_jpeg_colorspace_tbl[_handle->colorspace], _handle->quality);
 			else
-				err = mm_util_jpeg_encode_to_memory (_handle->dst_buffer, (int *)&(_handle->dst_size), _handle->src_buffer, _handle->width, _handle->height, _convert_jpeg_colorspace_tbl[_handle->colorspace], _handle->quality);
+				err = mm_util_jpeg_encode_to_memory(_handle->dst_buffer, (int *)&(_handle->dst_size), _handle->src_buffer, _handle->width, _handle->height, _convert_jpeg_colorspace_tbl[_handle->colorspace], _handle->quality);
 		}
 		break;
 	case IMAGE_UTIL_PNG:
@@ -1944,7 +1942,7 @@ int image_util_encode_run(image_util_encode_h handle, unsigned long long *size)
 		return _convert_image_util_error_code(__func__, err);
 	}
 
-	if(size)
+	if (size)
 		*size = _handle->dst_size;
 
 	return _convert_image_util_error_code(__func__, err);
@@ -1975,9 +1973,9 @@ gpointer _image_util_encode_thread(gpointer data)
 		}
 
 		err = _image_util_encode_internal(_handle);
-		if(err == MM_UTIL_ERROR_NONE) {
+		if (err == MM_UTIL_ERROR_NONE) {
 			image_util_debug("Success - encode_internal");
-		} else{
+		} else {
 			image_util_error("Error - encode_internal");
 		}
 		if (_handle->_encode_cb) {

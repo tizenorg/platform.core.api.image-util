@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
 		return 0;
 	}
 
-	if(argv[3])
+	if (argv[3])
 		encode_image_type = atoi(argv[3]);
 
 	if (!strcmp("decode", argv[1]) || !strcmp("decode-mem", argv[1]) || !strcmp("decode-async", argv[1])) {
@@ -193,19 +193,17 @@ int main(int argc, char *argv[])
 				ret = image_util_decode_set_input_buffer(decoded, (unsigned char *)src, src_size);
 				if (ret != IMAGE_UTIL_ERROR_NONE)
 					return 0;
-			}
-			else
+			} else
 				return 0;
 		}
 		ret = image_util_decode_set_output_buffer(decoded, &data);
 		if (ret != IMAGE_UTIL_ERROR_NONE)
 			return 0;
 
-		if(!strcmp("decode-async", argv[1])) {
+		if (!strcmp("decode-async", argv[1])) {
 			ret = image_util_decode_run_async(decoded, (image_util_decode_completed_cb) decode_completed_cb, NULL);
 			_wait();
-		}
-		else
+		} else
 			ret = image_util_decode_run(decoded, &image_width, &image_height, NULL);
 		if (ret != IMAGE_UTIL_ERROR_NONE)
 			return 0;
@@ -275,12 +273,10 @@ int main(int argc, char *argv[])
 				return 0;
 		}
 
-		if(!strcmp("decode-async", argv[1]))
-		{
+		if (!strcmp("decode-async", argv[1])) {
 			ret = image_util_encode_run_async(encoded, (image_util_encode_completed_cb) encode_completed_cb, NULL);
 			_wait();
-		}
-		else
+		} else
 			ret = image_util_encode_run(encoded, &image_size);
 		if (ret != IMAGE_UTIL_ERROR_NONE)
 			return 0;
