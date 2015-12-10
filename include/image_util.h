@@ -1169,10 +1169,11 @@ int image_util_encode_set_resolution(image_util_encode_h handle, unsigned long w
 int image_util_encode_set_colorspace(image_util_encode_h handle, image_util_colorspace_e colorspace);
 
 /**
-* @brief Sets the quality for JPEG image encoding.
+* @brief Sets the quality for image encoding.
 * @since_tizen 3.0
 *
-* @remarks If application does not set this, then by default quality of 20 is set.
+* @remarks If application does not set this, then by default quality of 75 is set.\n
+*             Quality is supported for JPEG format. IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT will be returned for other formats.
 *
 * @param[in] handle The handle to image util encoding
 * @param[in] quality Encoding quality from 1~100
@@ -1198,7 +1199,7 @@ int image_util_encode_set_colorspace(image_util_encode_h handle, image_util_colo
 * @see image_util_encode_run_async()
 * @see image_util_encode_destroy()
 */
-int image_util_encode_set_jpeg_quality(image_util_encode_h handle, int quality);
+int image_util_encode_set_quality(image_util_encode_h handle, int quality);
 
 /**
 * @brief Sets the compression value of png image encoding(0~9).
@@ -1319,7 +1320,7 @@ int image_util_encode_set_output_path(image_util_encode_h handle, const char *pa
 * @retval #IMAGE_UTIL_ERROR_NONE Successful
 * @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
 * @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
-* @retval #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Invalid operation
+* @retval #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Format not supported
 *
 * @pre image_util_encode_create()
 *
