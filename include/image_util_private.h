@@ -70,7 +70,7 @@ typedef struct {
 	image_util_colorspace_e colorspace;
 	image_util_rotation_e dest_rotation;
 	bool hardware_acceleration;
-	MMHandleType image_h;
+	mm_util_imgp_h image_h;
 	image_util_cb_s *_util_cb;
 	unsigned int width;
 	unsigned int height;
@@ -102,7 +102,7 @@ typedef struct {
 	void **dst_buffer;
 	unsigned long long dst_size;
 	const char *path;
-	MMHandleType image_h;
+	mm_util_imgp_h image_h;
 	unsigned long width;
 	unsigned long height;
 	bool is_decode;

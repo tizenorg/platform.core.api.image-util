@@ -223,7 +223,7 @@ static void _image_util_transform_completed_cb(media_packet_h * dst, int error, 
 static int _image_util_create_transform_handle(transformation_s * handle)
 {
 	int err = MM_UTIL_ERROR_NONE;
-	MMHandleType image_h;
+	mm_util_imgp_h image_h;
 
 	err = mm_util_create(&image_h);
 	if (err != MM_UTIL_ERROR_NONE) {
@@ -880,7 +880,7 @@ static int _image_util_decode_create_jpeg_handle(decode_encode_s * handle)
 	mm_util_jpeg_yuv_data *_handle = (mm_util_jpeg_yuv_data *) calloc(1, sizeof(mm_util_jpeg_yuv_data));
 	image_util_retvm_if((_handle == NULL), MM_UTIL_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY(0x%08x)", MM_UTIL_ERROR_OUT_OF_MEMORY);
 
-	handle->image_h = (MMHandleType) _handle;
+	handle->image_h = (mm_util_imgp_h) _handle;
 	handle->colorspace = IMAGE_UTIL_COLORSPACE_RGBA8888;
 	handle->down_scale = sizeof(image_util_scale_e);
 
@@ -898,7 +898,7 @@ static int _image_util_decode_create_png_handle(decode_encode_s * handle)
 
 	mm_util_init_decode_png(_handle);
 
-	handle->image_h = (MMHandleType) _handle;
+	handle->image_h = (mm_util_imgp_h) _handle;
 
 	return err;
 }
@@ -912,7 +912,7 @@ static int _image_util_decode_create_gif_handle(decode_encode_s * handle)
 	mm_util_gif_data *_handle = (mm_util_gif_data *) calloc(1, sizeof(mm_util_gif_data));
 	image_util_retvm_if((_handle == NULL), MM_UTIL_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY(0x%08x)", MM_UTIL_ERROR_OUT_OF_MEMORY);
 
-	handle->image_h = (MMHandleType) _handle;
+	handle->image_h = (mm_util_imgp_h) _handle;
 
 	return err;
 }
@@ -926,7 +926,7 @@ static int _image_util_decode_create_bmp_handle(decode_encode_s * handle)
 	mm_util_bmp_data *_handle = (mm_util_bmp_data *) calloc(1, sizeof(mm_util_bmp_data));
 	image_util_retvm_if((_handle == NULL), MM_UTIL_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY(0x%08x)", MM_UTIL_ERROR_OUT_OF_MEMORY);
 
-	handle->image_h = (MMHandleType) _handle;
+	handle->image_h = (mm_util_imgp_h) _handle;
 
 	return err;
 }
@@ -1496,7 +1496,7 @@ static int _image_util_encode_create_jpeg_handle(decode_encode_s * handle)
 	mm_util_jpeg_yuv_data *_handle = (mm_util_jpeg_yuv_data *) calloc(1, sizeof(mm_util_jpeg_yuv_data));
 	image_util_retvm_if((_handle == NULL), MM_UTIL_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY(0x%08x)", MM_UTIL_ERROR_OUT_OF_MEMORY);
 
-	handle->image_h = (MMHandleType) _handle;
+	handle->image_h = (mm_util_imgp_h) _handle;
 	handle->colorspace = IMAGE_UTIL_COLORSPACE_RGBA8888;
 	handle->quality = 75;
 
@@ -1514,7 +1514,7 @@ static int _image_util_encode_create_png_handle(decode_encode_s * handle)
 
 	mm_util_init_encode_png(_handle);
 
-	handle->image_h = (MMHandleType) _handle;
+	handle->image_h = (mm_util_imgp_h) _handle;
 
 	return err;
 }
@@ -1536,7 +1536,7 @@ static int _image_util_encode_create_gif_handle(decode_encode_s * handle)
 	}
 
 	mm_util_gif_encode_set_image_count(_handle, 1);
-	handle->image_h = (MMHandleType) _handle;
+	handle->image_h = (mm_util_imgp_h) _handle;
 
 	return err;
 }
@@ -1550,7 +1550,7 @@ static int _image_util_encode_create_bmp_handle(decode_encode_s * handle)
 	mm_util_bmp_data *_handle = (mm_util_bmp_data *) calloc(1, sizeof(mm_util_bmp_data));
 	image_util_retvm_if((_handle == NULL), MM_UTIL_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY(0x%08x)", MM_UTIL_ERROR_OUT_OF_MEMORY);
 
-	handle->image_h = (MMHandleType) _handle;
+	handle->image_h = (mm_util_imgp_h) _handle;
 
 	return err;
 }
