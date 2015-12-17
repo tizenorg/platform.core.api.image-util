@@ -15,6 +15,7 @@ BuildRequires:  pkgconfig(mmutil-gif)
 BuildRequires:  pkgconfig(mmutil-bmp)
 BuildRequires:  pkgconfig(capi-base-common)
 BuildRequires:  pkgconfig(capi-media-tool)
+BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  cmake
 BuildRequires:  libpng-devel
 BuildRequires:  giflib-devel
