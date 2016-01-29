@@ -21,7 +21,6 @@
 #include <string.h>
 #include <image_util.h>
 #include <image_util_type.h>
-#include <mm_error.h>
 
 #define MAX_STRING_LEN 128
 #define IMAGE_FORMAT_LABEL_BUFFER_SIZE 4
@@ -137,11 +136,11 @@ bool test_transform_completed_cb(media_packet_h *packet, image_util_error_e erro
 	char *output_fmt = NULL;
 
 	g_printf("test_transform_completed_cb============= [%d] \n", error);
-	if (error == MM_ERROR_NONE) {
+	if (error == IMAGE_UTIL_ERROR_NONE) {
 		g_printf("<<<<< SUCCESS >>>>>");
 		output_fmt = (char *)malloc(sizeof(char) * IMAGE_FORMAT_LABEL_BUFFER_SIZE);
 		if (output_fmt) {
-			if (media_packet_get_format(*packet, &dst_fmt) != MM_ERROR_NONE) {
+			if (media_packet_get_format(*packet, &dst_fmt) != MEDIA_PACKET_ERROR_NONE) {
 				g_printf("Imedia_packet_get_format");
 				_signal();
 				return FALSE;
@@ -164,7 +163,7 @@ bool test_transform_completed_cb(media_packet_h *packet, image_util_error_e erro
 		if (fpout) {
 			media_packet_get_buffer_size(*packet, &size);
 			void *dst = NULL;
-			if (media_packet_get_buffer_data_ptr(*packet, &dst) != MM_ERROR_NONE) {
+			if (media_packet_get_buffer_data_ptr(*packet, &dst) != MEDIA_PACKET_ERROR_NONE) {
 				IMAGE_UTIL_SAFE_FREE(dst);
 				IMAGE_UTIL_SAFE_FREE(output_fmt);
 				fclose(fpout);
@@ -205,31 +204,31 @@ create_media_packet()
 		if (media_format_set_video_mime(fmt, _image_util_mapping_imgp_format_to_mime(g_format)) != MEDIA_FORMAT_ERROR_NONE) {
 			media_format_unref(fmt);
 			g_printf("[Error] Set - video mime\n");
-			return MM_ERROR_IMAGE_INVALID_VALUE;
+			return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 		}
 
 		if (media_format_set_video_width(fmt, g_width) != MEDIA_FORMAT_ERROR_NONE) {
 			media_format_unref(fmt);
 			g_printf("[Error] Set - video width\n");
-			return MM_ERROR_IMAGE_INVALID_VALUE;
+			return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 		}
 
 		if (media_format_set_video_height(fmt, g_height) != MEDIA_FORMAT_ERROR_NONE) {
 			media_format_unref(fmt);
 			g_printf("[Error] Set - video heigh\nt");
-			return MM_ERROR_IMAGE_INVALID_VALUE;
+			return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 		}
 
 		if (media_format_set_video_avg_bps(fmt, 2000000) != MEDIA_FORMAT_ERROR_NONE) {
 			media_format_unref(fmt);
 			g_printf("[Error] Set - video avg bps\n");
-			return MM_ERROR_IMAGE_INVALID_VALUE;
+			return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 		}
 
 		if (media_format_set_video_max_bps(fmt, 15000000) != MEDIA_FORMAT_ERROR_NONE) {
 			media_format_unref(fmt);
 			g_printf("[Error] Set - video max bps\n");
-			return MM_ERROR_IMAGE_INVALID_VALUE;
+			return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 		}
 
 		g_printf("media_format_set_video_info success! file:%s, w:%d, h:%d, %d\n", g_path, g_width, g_height, _image_util_mapping_imgp_format_to_mime(g_format));
@@ -238,25 +237,25 @@ create_media_packet()
 	}
 
 	ret = media_packet_create_alloc(fmt, NULL, NULL, &g_src);
-	if (ret == MM_ERROR_NONE) {
+	if (ret == MEDIA_PACKET_ERROR_NONE) {
 		g_printf("Success - media_packet_create_alloc\n");
 		uint64_t size = 0;
 		if (media_packet_get_buffer_size(g_src, &size) == MEDIA_PACKET_ERROR_NONE) {
 			ptr = malloc(size);
 			if (ptr == NULL) {
 				g_printf("\tmemory allocation failed\n");
-				return MM_ERROR_IMAGE_INTERNAL;
+				return IMAGE_UTIL_ERROR_OUT_OF_MEMORY;
 			}
 			if (media_packet_get_buffer_data_ptr(g_src, &ptr) == MEDIA_PACKET_ERROR_NONE) {
 				FILE *fp = fopen(g_path, "r");
 				if (fp == NULL) {
 					g_printf("\tfile open failed %d\n", errno);
-					return MM_ERROR_IMAGE_INTERNAL;
+					return IMAGE_UTIL_ERROR_NO_SUCH_FILE;
 				}
 				src = malloc(size);
 				if (src == NULL) {
 					g_printf("\tmemory allocation failed\n");
-					return MM_ERROR_IMAGE_INTERNAL;
+					return IMAGE_UTIL_ERROR_NO_SUCH_FILE;
 				}
 				if (fread(src, 1, (int)size, fp)) {
 					g_printf("#Success# fread\n");
@@ -301,7 +300,7 @@ static void _set_image()
 		g_printf("[%d]Success source packet is destroyed \n", __LINE__);
 	}
 	ret = create_media_packet();
-	if (ret == MM_ERROR_NONE)
+	if (ret == MEDIA_PACKET_ERROR_NONE)
 		g_printf("Success - Create_media_packet\n");
 	else
 		g_printf("Error - Create_media_packet\n");
@@ -588,7 +587,7 @@ int main(int argc, char **argv)
 	bool hardware_acceleration = FALSE;
 
 	ret = create_media_packet();
-	if (ret == MM_ERROR_NONE) {
+	if (ret == MEDIA_PACKET_ERROR_NONE) {
 		g_printf("Success - Create_media_packet\n");
 	} else {
 		g_printf("Error - Create_media_packet\n");

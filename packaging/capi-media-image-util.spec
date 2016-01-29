@@ -1,6 +1,6 @@
 Name:       capi-media-image-util
 Summary:    A Image Utility library in Tizen Native API
-Version:    0.1.7
+Version:    0.1.8
 Release:    1
 Group:      Multimedia/API
 License:    Apache-2.0
@@ -9,13 +9,13 @@ Source1001:     capi-media-image-util.manifest
 BuildRequires:  pkgconfig(dlog)
 BuildRequires:  pkgconfig(mmutil-jpeg)
 BuildRequires:  pkgconfig(mmutil-imgp)
-BuildRequires:  pkgconfig(mmutil-imgcv)
 BuildRequires:  pkgconfig(mmutil-png)
 BuildRequires:  pkgconfig(mmutil-gif)
 BuildRequires:  pkgconfig(mmutil-bmp)
 BuildRequires:  pkgconfig(capi-base-common)
 BuildRequires:  pkgconfig(capi-media-tool)
 BuildRequires:  pkgconfig(glib-2.0)
+BuildRequires:  pkgconfig(gmodule-2.0)
 BuildRequires:  cmake
 BuildRequires:  libpng-devel
 BuildRequires:  giflib-devel
@@ -33,7 +33,6 @@ Requires:  pkgconfig(dlog)
 Requires:  pkgconfig(mm-common)
 Requires:  pkgconfig(mmutil-jpeg)
 Requires:  pkgconfig(mmutil-imgp)
-Requires:  pkgconfig(mmutil-imgcv)
 Requires:  pkgconfig(mmutil-png)
 Requires:  pkgconfig(mmutil-gif)
 Requires:  pkgconfig(mmutil-bmp)

@@ -21,6 +21,7 @@
 #include <dlog.h>
 #include <stdlib.h>
 #include <glib.h>
+#include <gmodule.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -57,6 +58,10 @@ extern "C"
 			return (val); \
 		} \
 	} while (0)
+
+#define IMGCV_FUNC_NAME "mm_util_cv_extract_representative_color"
+#define PATH_MMUTIL_IMGCV_LIB "/usr/lib/libmmutil_imgcv.so"
+typedef gboolean (*ModuleFunc) (void *, int, int, unsigned char *, unsigned char *, unsigned char *);
 
 typedef struct {
 	void *user_data;
