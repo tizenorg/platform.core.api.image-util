@@ -819,9 +819,9 @@ int image_util_extract_color_from_memory(const unsigned char *image_buffer, int 
 	image_util_retvm_if((module == NULL), IMAGE_UTIL_ERROR_NO_SUCH_FILE, "fail to open module");
 
 	g_module_symbol(module, IMGCV_FUNC_NAME, (gpointer *)&mmutil_imgcv_module_func);
-	if (!mmutil_imgcv_module_func) {
+	if (!mmutil_imgcv_module_func)
 		g_module_close(module);
-	}
+
 	image_util_retvm_if((mmutil_imgcv_module_func == NULL), IMAGE_UTIL_ERROR_INVALID_OPERATION, "fail to get symbol");
 
 	unsigned char r_color, g_color, b_color;
