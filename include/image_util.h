@@ -1105,6 +1105,7 @@ int image_util_encode_create(image_util_type_e image_type, image_util_encode_h *
 * @since_tizen 3.0
 *
 * @remarks This should be called before calling image_util_encode_run().
+*          While encoding animated gif image, image_util_encode_set_input_buffer() should be called after this.
 *
 * @param[in] handle The handle to image util encoding
 * @param[in] width Width of the original image
@@ -1119,6 +1120,7 @@ int image_util_encode_create(image_util_type_e image_type, image_util_encode_h *
 *
 * @pre image_util_encode_create()
 *
+* @post image_util_encode_set_input_buffer()
 * @post image_util_encode_run()/image_util_encode_run_async()
 * @post image_util_encode_destroy()
 *
@@ -1241,6 +1243,7 @@ int image_util_encode_set_png_compression(image_util_encode_h handle, image_util
 * @remarks Either image_util_encode_set_output_path() or image_util_encode_set_output_buffer() should be set.\n
 *          By default the input buffer colorspace will be considered as IMAGE_UTIL_COLORSPACE_RGBA8888.\n
 *          Use image_util_encode_set_colorspace to change the colorspace.
+*          While encoding animated gif image, image_util_encode_set_resolution() should be called before this.
 *
 * @param[in] handle The handle to image util decoding
 * @param[in] src_buffer The input image buffer
@@ -1253,6 +1256,7 @@ int image_util_encode_set_png_compression(image_util_encode_h handle, image_util
 * @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
 *
 * @pre image_util_encode_create()
+* @pre image_util_encode_set_resolution()
 *
 * @post image_util_encode_run()/image_util_encode_run_async()
 * @post image_util_encode_destroy()
