@@ -102,7 +102,7 @@ typedef struct {
 
 typedef struct {
 	image_util_type_e image_type;
-	void *src_buffer;
+	void **src_buffer;
 	unsigned long long src_size;
 	void **dst_buffer;
 	unsigned long long dst_size;
@@ -112,6 +112,10 @@ typedef struct {
 	unsigned long height;
 	bool is_decode;
         int quality;
+	unsigned int image_count;
+	unsigned int current_buffer_count;
+	unsigned int current_resolution_count;
+	unsigned int current_delay_count;
 	image_util_colorspace_e colorspace;
 	image_util_scale_e down_scale;
 	decode_cb_s *_decode_cb;
