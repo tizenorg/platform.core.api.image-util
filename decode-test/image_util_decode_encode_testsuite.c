@@ -166,20 +166,135 @@ int main(int argc, char *argv[])
 	image_util_encode_h encoded = NULL;
 	void *src = NULL;
 	unsigned char *data = NULL;
+	unsigned char **animated_data = NULL;
 	unsigned char *dst = NULL;
 	unsigned long long src_size = 0;
 	int encode_image_type = -1;
 
-	if (argc < 4) {
+	if (argc < 3) {
 		fprintf(stderr, "\t[usage]\n");
-		fprintf(stderr, "\t\t1. decode : mm_util_png_testsuite decode filepath encode_image_type\n");
+		fprintf(stderr, "\t\t1. decode/encode : capi-media-image-util-decode-test decode/decode-mem/decode-async filepath encode_image_type\n");
+		fprintf(stderr, "\t\t2. encode gif : capi-media-image-util-decode-test encode-gif/encode-gif-mem 'folderpath containing png images named \
+					with number prefix according to the animation order'\n");
 		return 0;
 	}
 
 	if (argv[3])
 		encode_image_type = atoi(argv[3]);
 
-	if (!strcmp("decode", argv[1]) || !strcmp("decode-mem", argv[1]) || !strcmp("decode-async", argv[1])) {
+	if (!strcmp("encode-gif", argv[1]) || !strcmp("encode-gif-mem", argv[1])) {
+		struct dirent *dp;
+		DIR *fd;
+		int number_files = 0, i = 0;
+		char gif_filename[BUFFER_SIZE] = { 0, }, temp_filename[BUFFER_SIZE] = {
+		0,}, temp[BUFFER_SIZE] = {0,}, file_format[BUFFER_SIZE] = {0,};
+		unsigned long gif_image_width[1000] = { 0, }, gif_image_height[1000] = {
+		0,};
+		memset(gif_filename, 0, BUFFER_SIZE);
+		{
+			snprintf(gif_filename, BUFFER_SIZE, "%s%s", DECODE_RESULT_PATH, "gif");
+		}
+
+		if ((fd = opendir(argv[2])) == NULL) {
+			fprintf(stderr, "listdir: can't open %s\n", argv[2]);
+			return 0;
+		}
+
+		while ((dp = readdir(fd)) != NULL) {
+			if (!strcmp(dp->d_name, ".") || !strcmp(dp->d_name, ".."))
+				continue;		/* skip self and parent */
+			if(!number_files) {
+				char *temp1 = strstr(dp->d_name, "-");
+				char *temp2 = strstr(dp->d_name, ".");
+
+				strncpy(temp_filename, dp->d_name, strlen(dp->d_name) - strlen(temp1));
+				strncpy(file_format, temp2, strlen(temp2));
+			}
+			number_files++;
+		}
+		closedir(fd);
+		if (!number_files) {
+			fprintf(stderr, "\t\tCannot open directory\n");
+			return 0;
+		}
+
+		for (i = 0; i < number_files; i++) {
+			animated_data = (unsigned char **)realloc(animated_data, (i + 1) * sizeof(unsigned char *));
+			ret = image_util_decode_create(&decoded);
+			if (ret != IMAGE_UTIL_ERROR_NONE)
+				return 0;
+
+			snprintf(temp, BUFFER_SIZE, "%s%s-%d%s", argv[2], temp_filename, i, file_format);
+
+			ret = image_util_decode_set_input_path(decoded, temp);
+			if (ret != IMAGE_UTIL_ERROR_NONE)
+				return 0;
+
+			ret = image_util_decode_set_output_buffer(decoded, &animated_data[i]);
+			if (ret != IMAGE_UTIL_ERROR_NONE)
+				return 0;
+
+			ret = image_util_decode_run(decoded, &gif_image_width[i], &gif_image_height[i], NULL);
+			if (ret != IMAGE_UTIL_ERROR_NONE)
+				return 0;
+
+			ret = image_util_decode_destroy(decoded);
+			if (ret != IMAGE_UTIL_ERROR_NONE)
+				return 0;
+		}
+
+		ret = image_util_encode_create(IMAGE_UTIL_GIF, &encoded);
+		if (ret != IMAGE_UTIL_ERROR_NONE)
+			return 0;
+
+		for (i = 0; i < number_files; i++) {
+			ret = image_util_encode_set_input_buffer(encoded, animated_data[i]);
+			if (ret != IMAGE_UTIL_ERROR_NONE)
+				return 0;
+		}
+		for (i = 0; i < number_files; i++) {
+			ret = image_util_encode_set_resolution(encoded, gif_image_width[i], gif_image_height[i]);
+			if (ret != IMAGE_UTIL_ERROR_NONE)
+				return 0;
+		}
+		for (i = 0; i < number_files; i++) {
+			ret = image_util_encode_set_gif_frame_delay_time(encoded, 10);
+			if (ret != IMAGE_UTIL_ERROR_NONE)
+				return 0;
+		}
+		if (!strcmp("encode-gif-mem", argv[1])) {
+			ret = image_util_encode_set_output_buffer(encoded, &dst);
+			if (ret != IMAGE_UTIL_ERROR_NONE)
+				return 0;
+		} else {
+			ret = image_util_encode_set_output_path(encoded, gif_filename);
+			if (ret != IMAGE_UTIL_ERROR_NONE)
+				return 0;
+		}
+		ret = image_util_encode_run(encoded, &image_size);
+		if (ret != IMAGE_UTIL_ERROR_NONE)
+			return 0;
+
+		if (!strcmp("encode-gif-mem", argv[1])) {
+			_write_file(gif_filename, (void *)dst, image_size);
+			free(dst);
+		}
+
+		ret = image_util_encode_destroy(encoded);
+		if (ret != IMAGE_UTIL_ERROR_NONE)
+			return 0;
+
+		for (i = 0; i < number_files; i++)
+			free(animated_data[i]);
+		free(animated_data);
+
+		return 0;
+	} else if (!strcmp("decode", argv[1]) || !strcmp("decode-mem", argv[1]) || !strcmp("decode-async", argv[1])) {
+		if (argc < 4) {
+			fprintf(stderr, "\t[usage]\n");
+			fprintf(stderr, "\t\t1. decode/encode : capi-media-image-util-decode-test decode/decode-mem/decode-async filepath encode_image_type\n");
+			return 0;
+		}
 		ret = image_util_decode_create(&decoded);
 		if (ret != IMAGE_UTIL_ERROR_NONE)
 			return 0;
@@ -204,7 +319,7 @@ int main(int argc, char *argv[])
 			ret = image_util_decode_run_async(decoded, (image_util_decode_completed_cb) decode_completed_cb, NULL);
 			_wait();
 		} else
-			ret = image_util_decode_run(decoded, &image_width, &image_height, NULL);
+			ret = image_util_decode_run(decoded, &image_width, &image_height, &image_size);
 		if (ret != IMAGE_UTIL_ERROR_NONE)
 			return 0;
 
@@ -222,6 +337,10 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "\t##Decoded data##: %p\t width: %lu\t height:%lu\n", data, (long unsigned int)image_width, (long unsigned int)image_height);
 		char filename[BUFFER_SIZE] = { 0, }, type[4] = {
 		0,};
+		memset(filename, 0, BUFFER_SIZE);
+
+		snprintf(filename, BUFFER_SIZE, "%s%s", DECODE_RESULT_PATH, "raw");
+		_write_file(filename, (void *)data, image_size);
 		memset(filename, 0, BUFFER_SIZE);
 
 		switch (encode_image_type) {
