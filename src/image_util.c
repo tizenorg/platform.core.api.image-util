@@ -963,6 +963,7 @@ int image_util_decode_create(image_util_decode_h * handle)
 	_handle->image_h = 0;
 	_handle->is_decode = TRUE;
 	_handle->image_type = -1;
+	_handle->image_count = 1;
 
 	*handle = (image_util_decode_h) _handle;
 
@@ -1100,7 +1101,9 @@ int image_util_decode_set_input_buffer(image_util_decode_h handle, const unsigne
 
 	err = _image_util_decode_create_image_handle(_handle, src_buffer);
 
-	_handle->src_buffer = (void *)src_buffer;
+	if (!_handle->src_buffer)
+		_handle->src_buffer = (void *)calloc(1, sizeof(void *));
+	_handle->src_buffer[0] = (void *)src_buffer;
 	_handle->src_size = src_size;
 
 	return err;
@@ -1201,9 +1204,9 @@ static int _image_util_decode_internal(decode_encode_s * _handle)
 					err = mm_util_decode_from_jpeg_file(jpeg_data, _handle->path, _convert_jpeg_colorspace_tbl[_handle->colorspace]);
 			} else {
 				if (_handle->down_scale < sizeof(image_util_scale_e))
-					err = mm_util_decode_from_jpeg_memory_with_downscale(jpeg_data, _handle->src_buffer, _handle->src_size, _convert_jpeg_colorspace_tbl[_handle->colorspace], _convert_decode_scale_tbl[_handle->down_scale]);
+					err = mm_util_decode_from_jpeg_memory_with_downscale(jpeg_data, _handle->src_buffer[0], _handle->src_size, _convert_jpeg_colorspace_tbl[_handle->colorspace], _convert_decode_scale_tbl[_handle->down_scale]);
 				else
-					err = mm_util_decode_from_jpeg_memory(jpeg_data, _handle->src_buffer, _handle->src_size, _convert_jpeg_colorspace_tbl[_handle->colorspace]);
+					err = mm_util_decode_from_jpeg_memory(jpeg_data, _handle->src_buffer[0], _handle->src_size, _convert_jpeg_colorspace_tbl[_handle->colorspace]);
 			}
 
 			if (err == MM_UTIL_ERROR_NONE) {
@@ -1227,7 +1230,7 @@ static int _image_util_decode_internal(decode_encode_s * _handle)
 			if (_handle->path)
 				err = mm_util_decode_from_png_file(png_data, _handle->path);
 			else
-				err = mm_util_decode_from_png_memory(png_data, &_handle->src_buffer, _handle->src_size);
+				err = mm_util_decode_from_png_memory(png_data, &_handle->src_buffer[0], _handle->src_size);
 
 			if (err == MM_UTIL_ERROR_NONE) {
 				*(_handle->dst_buffer) = png_data->data;
@@ -1250,10 +1253,10 @@ static int _image_util_decode_internal(decode_encode_s * _handle)
 			if (_handle->path)
 				err = mm_util_decode_from_gif_file(gif_data, _handle->path);
 			else
-				err = mm_util_decode_from_gif_memory(gif_data, &_handle->src_buffer);
+				err = mm_util_decode_from_gif_memory(gif_data, &_handle->src_buffer[0]);
 
 			if (err == MM_UTIL_ERROR_NONE) {
-				*(_handle->dst_buffer) = gif_data->frames[0].data;
+				*(_handle->dst_buffer) = gif_data->frames[0]->data;
 				_handle->dst_size = gif_data->size;
 				_handle->width = gif_data->width;
 				_handle->height = gif_data->height;
@@ -1273,7 +1276,7 @@ static int _image_util_decode_internal(decode_encode_s * _handle)
 			if (_handle->path)
 				err = mm_util_decode_from_bmp_file(bmp_data, _handle->path);
 			else
-				err = mm_util_decode_from_bmp_memory(bmp_data, &_handle->src_buffer, _handle->src_size);
+				err = mm_util_decode_from_bmp_memory(bmp_data, &_handle->src_buffer[0], _handle->src_size);
 
 			if (err == MM_UTIL_ERROR_NONE) {
 				*(_handle->dst_buffer) = bmp_data->data;
@@ -1422,7 +1425,7 @@ int image_util_decode_destroy(image_util_decode_h handle)
 	int err = IMAGE_UTIL_ERROR_NONE;
 	decode_encode_s *_handle = (decode_encode_s *) handle;
 
-	image_util_debug("image_util_encode_png_destroy");
+	image_util_debug("image_util_decode_destroy");
 
 	if (_handle == NULL || _handle->is_decode == FALSE) {
 		image_util_error("Invalid Handle");
@@ -1496,7 +1499,7 @@ int image_util_decode_destroy(image_util_decode_h handle)
 
 		g_cond_clear(&(_handle->thread_cond));
 	}
-
+	IMAGE_UTIL_SAFE_FREE(_handle->src_buffer);
 	IMAGE_UTIL_SAFE_FREE(_handle);
 
 	return err;
@@ -1543,14 +1546,19 @@ static int _image_util_encode_create_gif_handle(decode_encode_s * handle)
 	mm_util_gif_data *_handle = (mm_util_gif_data *) calloc(1, sizeof(mm_util_gif_data));
 	image_util_retvm_if((_handle == NULL), MM_UTIL_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY(0x%08x)", MM_UTIL_ERROR_OUT_OF_MEMORY);
 
-	_handle->frames = (mm_util_gif_frame_data *) calloc(1, sizeof(mm_util_gif_frame_data));
+	_handle->frames = (mm_util_gif_frame_data **) calloc(1, sizeof(mm_util_gif_frame_data *));
 	if (_handle->frames == NULL) {
 		image_util_error("Error - OUT_OF_MEMORY");
 		IMAGE_UTIL_SAFE_FREE(_handle);
 		return MM_UTIL_ERROR_OUT_OF_MEMORY;
 	}
+	_handle->frames[0] = (mm_util_gif_frame_data *) calloc(1, sizeof(mm_util_gif_frame_data));
+	if (_handle->frames[0] == NULL) {
+		image_util_error("Error - OUT_OF_MEMORY");
+		IMAGE_UTIL_SAFE_FREE(_handle);
+		return MM_UTIL_ERROR_OUT_OF_MEMORY;
+	}
 
-	mm_util_gif_encode_set_image_count(_handle, 1);
 	handle->image_h = (mm_util_imgp_h) _handle;
 
 	return err;
@@ -1587,6 +1595,8 @@ int image_util_encode_create(image_util_type_e image_type, image_util_encode_h *
 	_handle->path = NULL;
 	_handle->image_h = 0;
 	_handle->is_decode = FALSE;
+	_handle->image_count = 1;
+	_handle->current_image_count = 0;
 
 	switch (image_type) {
 	case IMAGE_UTIL_JPEG:
@@ -1664,8 +1674,25 @@ int image_util_encode_set_resolution(image_util_encode_h handle, unsigned long w
 				image_util_error("Invalid gif data");
 				return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 			}
-			mm_util_gif_encode_set_width(gif_data, width);
-			mm_util_gif_encode_set_height(gif_data, height);
+			if (_handle->current_image_count >= _handle->image_count) {
+				image_util_error("Present frame count exceeds total number of frames.");
+				return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+			}
+
+			if (!_handle->current_image_count) {
+				mm_util_gif_encode_set_width(gif_data, width);
+				mm_util_gif_encode_set_height(gif_data, height);
+				_handle->width = width;
+				_handle->height = height;
+			} else if ((width > gif_data->frames[0]->width) || (height > gif_data->frames[0]->height)) {
+				image_util_error("Image resolution cannot be more than the resolution of the first image");
+				return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+			}
+
+			gif_data->frames[_handle->current_image_count]->width = width;
+			gif_data->frames[_handle->current_image_count]->height = height;
+
+			return err;
 		}
 		break;
 	case IMAGE_UTIL_BMP:
@@ -1773,6 +1800,86 @@ int image_util_encode_set_png_compression(image_util_encode_h handle, image_util
 	return err;
 }
 
+int image_util_encode_gif_set_frame_count(image_util_encode_h handle, unsigned int frame_count)
+{
+	int err = IMAGE_UTIL_ERROR_NONE;
+	decode_encode_s *_handle = (decode_encode_s *) handle;
+	mm_util_gif_data *gif_data;
+	unsigned int i = 0;
+
+	if (_handle == NULL || _handle->is_decode == TRUE) {
+		image_util_error("Invalid Handle");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+	if (_handle->image_type != IMAGE_UTIL_GIF) {
+		image_util_error("Wrong image format");
+		return IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT;
+	}
+	if (frame_count == 0) {
+		image_util_error("Frame count cannot be set as 0");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+	gif_data = (mm_util_gif_data *) _handle->image_h;
+	if (gif_data == NULL) {
+		image_util_error("Invalid gif data");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+
+	_handle->image_count = frame_count;
+
+	gif_data->frames = (mm_util_gif_frame_data **) realloc(gif_data->frames, (_handle->image_count) * sizeof(mm_util_gif_frame_data *));
+	if (gif_data->frames == NULL) {
+		image_util_error("Error - OUT_OF_MEMORY");
+		IMAGE_UTIL_SAFE_FREE(_handle);
+		return IMAGE_UTIL_ERROR_OUT_OF_MEMORY;
+	}
+
+	for(i = 1; i < _handle->image_count; i++) {
+		gif_data->frames[i] = (mm_util_gif_frame_data *) calloc(1, sizeof(mm_util_gif_frame_data));
+		if (gif_data->frames[i] == NULL) {
+			image_util_error("Error - OUT_OF_MEMORY");
+			IMAGE_UTIL_SAFE_FREE(_handle);
+			return IMAGE_UTIL_ERROR_OUT_OF_MEMORY;
+		}
+	}
+
+	return err;
+}
+
+int image_util_encode_gif_set_frame_delay_time(image_util_encode_h handle, unsigned long long delay_time)
+{
+	int err = IMAGE_UTIL_ERROR_NONE;
+	decode_encode_s *_handle = (decode_encode_s *) handle;
+	mm_util_gif_data *gif_data;
+
+	if (_handle == NULL || _handle->is_decode == TRUE) {
+		image_util_error("Invalid Handle");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+	if (_handle->image_type != IMAGE_UTIL_GIF) {
+		image_util_error("Wrong image format");
+		return IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT;
+	}
+
+	gif_data = (mm_util_gif_data *) _handle->image_h;
+	if (gif_data == NULL) {
+		image_util_error("Invalid gif data");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+	if (_handle->current_image_count >= _handle->image_count) {
+		image_util_error("Present frame count exceeds total number of frames.");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+	if (gif_data->frames == NULL) {
+		image_util_error("Error allocating gif frames.");
+		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+	}
+
+	mm_util_gif_encode_set_frame_delay_time(gif_data->frames[_handle->current_image_count], delay_time);
+
+	return err;
+}
+
 int image_util_encode_set_input_buffer(image_util_encode_h handle, const unsigned char *src_buffer)
 {
 	int err = IMAGE_UTIL_ERROR_NONE;
@@ -1787,7 +1894,23 @@ int image_util_encode_set_input_buffer(image_util_encode_h handle, const unsigne
 		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 	}
 
-	_handle->src_buffer = (void *)src_buffer;
+	_handle->src_buffer = (void *)realloc(_handle->src_buffer, (_handle->current_image_count + 1) * sizeof(void *));
+	_handle->src_buffer[_handle->current_image_count] = (void *)src_buffer;
+
+	if (_handle->image_type == IMAGE_UTIL_GIF) {
+		mm_util_gif_data *gif_data;
+
+		gif_data = (mm_util_gif_data *) _handle->image_h;
+
+		if (gif_data->frames == NULL) {
+			image_util_error("Error allocating gif frames.");
+			return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+		}
+
+		gif_data->frames[_handle->current_image_count]->data = _handle->src_buffer[_handle->current_image_count];
+		if(_handle->image_count > 1)
+			_handle->current_image_count++;
+	}
 
 	return err;
 }
@@ -1845,9 +1968,9 @@ static int _image_util_encode_internal(decode_encode_s * _handle)
 	case IMAGE_UTIL_JPEG:
 		{
 			if (_handle->path)
-				err = mm_util_jpeg_encode_to_file(_handle->path, _handle->src_buffer, _handle->width, _handle->height, _convert_jpeg_colorspace_tbl[_handle->colorspace], _handle->quality);
+				err = mm_util_jpeg_encode_to_file(_handle->path, _handle->src_buffer[0], _handle->width, _handle->height, _convert_jpeg_colorspace_tbl[_handle->colorspace], _handle->quality);
 			else
-				err = mm_util_jpeg_encode_to_memory(_handle->dst_buffer, (int *)&(_handle->dst_size), _handle->src_buffer, _handle->width, _handle->height, _convert_jpeg_colorspace_tbl[_handle->colorspace], _handle->quality);
+				err = mm_util_jpeg_encode_to_memory(_handle->dst_buffer, (int *)&(_handle->dst_size), _handle->src_buffer[0], _handle->width, _handle->height, _convert_jpeg_colorspace_tbl[_handle->colorspace], _handle->quality);
 		}
 		break;
 	case IMAGE_UTIL_PNG:
@@ -1861,9 +1984,9 @@ static int _image_util_encode_internal(decode_encode_s * _handle)
 			}
 
 			if (_handle->path)
-				err = mm_util_encode_to_png_file(&(_handle->src_buffer), png_data, _handle->path);
+				err = mm_util_encode_to_png_file(&(_handle->src_buffer[0]), png_data, _handle->path);
 			else
-				err = mm_util_encode_to_png_memory(&(_handle->src_buffer), png_data);
+				err = mm_util_encode_to_png_memory(&(_handle->src_buffer[0]), png_data);
 
 			if (err == MM_UTIL_ERROR_NONE) {
 				if (_handle->dst_buffer)
@@ -1880,12 +2003,16 @@ static int _image_util_encode_internal(decode_encode_s * _handle)
 			void *dst_buffer = NULL;
 
 			gif_data = (mm_util_gif_data *) _handle->image_h;
-			if (gif_data == NULL || gif_data->frames == NULL) {
+			if (gif_data == NULL) {
 				image_util_error("Invalid gif data");
 				return MM_UTIL_ERROR_INVALID_PARAMETER;
 			}
+			if((_handle->image_count > 1) && (_handle->image_count != _handle->current_image_count)) {
+				image_util_error("Total frame count does not match with the data set, for animated gif encoding");
+				return MM_UTIL_ERROR_INVALID_OPERATION;
+			}
 
-			gif_data->frames[0].data = _handle->src_buffer;
+			mm_util_gif_encode_set_image_count(gif_data, _handle->image_count);
 			if (_handle->path)
 				err = mm_util_encode_gif_to_file(gif_data, _handle->path);
 			else
@@ -1910,7 +2037,7 @@ static int _image_util_encode_internal(decode_encode_s * _handle)
 				return MM_UTIL_ERROR_INVALID_PARAMETER;
 			}
 
-			bmp_data->data = _handle->src_buffer;
+			bmp_data->data = _handle->src_buffer[0];
 			if (_handle->path)
 				err = mm_util_encode_bmp_to_file(bmp_data, _handle->path);
 			else {
@@ -2100,12 +2227,16 @@ int image_util_encode_destroy(image_util_encode_h handle)
 	case IMAGE_UTIL_GIF:
 		{
 			mm_util_gif_data *gif_data;
+			unsigned int i = 0;
 
 			gif_data = (mm_util_gif_data *) _handle->image_h;
 			if (gif_data == NULL) {
 				image_util_error("Invalid gif data");
 				return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 			}
+			for (i = 1; i < _handle->image_count; i++)
+				IMAGE_UTIL_SAFE_FREE(gif_data->frames[i]);
+			IMAGE_UTIL_SAFE_FREE(gif_data->frames[0]);
 			IMAGE_UTIL_SAFE_FREE(gif_data->frames);
 			IMAGE_UTIL_SAFE_FREE(gif_data);
 		}
@@ -2142,6 +2273,7 @@ int image_util_encode_destroy(image_util_encode_h handle)
 		g_cond_clear(&(_handle->thread_cond));
 	}
 
+	IMAGE_UTIL_SAFE_FREE(_handle->src_buffer);
 	IMAGE_UTIL_SAFE_FREE(_handle);
 
 	return err;
