@@ -1104,7 +1104,10 @@ int image_util_encode_create(image_util_type_e image_type, image_util_encode_h *
 * @brief Sets the resolution of the encoded image.
 * @since_tizen 3.0
 *
-* @remarks This should be called before calling image_util_encode_run().
+* @remarks This should be called before calling image_util_encode_run().\n
+*          While encoding animated gif image, image_util_encode_animated_gif_set_frame_count() should be set\n
+*          and image_util_encode_set_input_buffer() should be called after this.\n
+*          Resolution should be set for each frame in the animated gif image.
 *
 * @param[in] handle The handle to image util encoding
 * @param[in] width Width of the original image
@@ -1235,12 +1238,94 @@ int image_util_encode_set_quality(image_util_encode_h handle, int quality);
 int image_util_encode_set_png_compression(image_util_encode_h handle, image_util_png_compression_e compression);
 
 /**
+* @brief Sets the number of frames to be encoded to an animated gif image.
+* @since_tizen 3.0
+*
+* @remarks In case of animated gif image, if this is not set then only first frame will be encoded.\n
+*          image_util_encode_set_resolution() ,image_util_encode_set_input_buffer() and\n
+*          image_util_encode_animated_gif_set_frame_delay_time() should be called after this.
+*
+* @param[in] handle The handle to image util encoding
+* @param[in] frame_count Frame count
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Format not supported
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+*
+* @pre image_util_encode_create()
+*
+* @post image_util_encode_set_resolution()
+* @post image_util_encode_set_input_buffer()
+* @post image_util_encode_set_output_path()/image_util_encode_set_output_buffer()
+* @post image_util_encode_run()/image_util_encode_run_async()
+* @post image_util_encode_destroy()
+*
+* @see image_util_encode_create()
+* @see image_util_encode_set_resolution()
+* @see image_util_encode_animated_gif_set_frame_delay_time()
+* @see image_util_encode_set_input_buffer()
+* @see image_util_encode_set_output_path()
+* @see image_util_encode_set_output_buffer()
+* @see image_util_encode_run()
+* @see image_util_encode_run_async()
+* @see image_util_encode_destroy()
+*/
+int image_util_encode_animated_gif_set_frame_count(image_util_encode_h handle, unsigned int frame_count);
+
+/**
+* @brief Sets the time delay between each frame in the encoded animated gif image.
+* @since_tizen 3.0
+*
+* @remarks In case of animated gif image, if this is not set then there will be no delay between each frame.\n
+*          This should be set for each frame in the animated gif image.\n
+*          This can be set a different value for each frame, which results in different delay time between different frames.\n
+*          If this is set only once, only the first frame will have delay time. All other frames will have no delay.\n
+*          image_util_encode_animated_gif_set_frame_count() should be set before calling this.\n
+*          image_util_encode_set_input_buffer() should be called after this.
+*
+* @param[in] handle The handle to image util encoding
+* @param[in] delay_time Time delay between each frame in the encoded image, in 0.01sec units.
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT Format not supported
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+*
+* @pre image_util_encode_create()
+* @pre image_util_encode_animated_gif_set_frame_count()
+*
+* @post image_util_encode_set_input_buffer()
+* @post image_util_encode_run()/image_util_encode_run_async()
+* @post image_util_encode_destroy()
+*
+* @see image_util_encode_create()
+* @see image_util_encode_set_resolution()
+* @see image_util_encode_animated_gif_set_frame_count()
+* @see image_util_encode_set_input_buffer()
+* @see image_util_encode_set_output_path()
+* @see image_util_encode_set_output_buffer()
+* @see image_util_encode_run()
+* @see image_util_encode_run_async()
+* @see image_util_encode_destroy()
+*/
+int image_util_encode_animated_gif_set_frame_delay_time(image_util_encode_h handle, unsigned long long delay_time);
+
+/**
 * @brief Sets the input buffer from which to encode.
 * @since_tizen 3.0
 *
 * @remarks Either image_util_encode_set_output_path() or image_util_encode_set_output_buffer() should be set.\n
 *          By default the input buffer colorspace will be considered as IMAGE_UTIL_COLORSPACE_RGBA8888.\n
-*          Use image_util_encode_set_colorspace to change the colorspace.
+*          Use image_util_encode_set_colorspace to change the colorspace.\n
+*          While encoding animated gif image, image_util_encode_animated_gif_set_frame_count(),\n
+*          image_util_encode_set_resolution() and image_util_encode_animated_gif_set_frame_delay_time()\n
+*          should be called before this.\n
+*          Input buffer should be set for each frame in the animated gif image.
 *
 * @param[in] handle The handle to image util decoding
 * @param[in] src_buffer The input image buffer
@@ -1253,6 +1338,7 @@ int image_util_encode_set_png_compression(image_util_encode_h handle, image_util
 * @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
 *
 * @pre image_util_encode_create()
+* @pre image_util_encode_set_resolution()
 *
 * @post image_util_encode_run()/image_util_encode_run_async()
 * @post image_util_encode_destroy()
