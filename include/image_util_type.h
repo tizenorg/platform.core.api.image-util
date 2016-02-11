@@ -80,15 +80,13 @@ typedef enum {
 } image_util_colorspace_e;
 
 /**
- * @brief Enumeration for scale decoding.
- * @since_tizen 2.4
+ * @}
  */
-typedef enum {
-    IMAGE_UTIL_DOWNSCALE_1_1, /** 1/1 downscale */
-    IMAGE_UTIL_DOWNSCALE_1_2,	/** 1/2 downscale */
-    IMAGE_UTIL_DOWNSCALE_1_4,	/** 1/4 downscale */
-    IMAGE_UTIL_DOWNSCALE_1_8,	/** 1/8 downscale */
-} image_util_scale_e;
+
+/**
+ * @addtogroup CAPI_MEDIA_IMAGE_UTIL_TRANSFORM_MODULE
+ * @{
+ */
 
 /**
  * @brief Enumeration for rotation.
@@ -104,14 +102,14 @@ typedef enum {
 } image_util_rotation_e;
 
 /**
-* @ingroup CAPI_MEDIA_IMAGE_UTIL_MODULE
+* @ingroup CAPI_MEDIA_IMAGE_UTIL_TRANSFORM_MODULE
 * @brief Image util handle.
 * @since_tizen 2.3
 */
 typedef struct transformation_s *transformation_h;
 
 /**
-* @ingroup CAPI_MEDIA_IMAGE_UTIL_MODULE
+* @ingroup CAPI_MEDIA_IMAGE_UTIL_TRANSFORM_MODULE
 * @brief Called when transform is finished just before returning the output.
 * @since_tizen 2.3
 *
@@ -125,6 +123,15 @@ typedef struct transformation_s *transformation_h;
 typedef void(*image_util_transform_completed_cb)(media_packet_h *dst, int error_code, void *user_data);
 
 /**
+ * @}
+ */
+
+/**
+ * @addtogroup CAPI_MEDIA_IMAGE_UTIL_ENCODE_DECODE_MODULE
+ * @{
+ */
+
+/**
  * @brief Enumeration for Image types.
  * @since_tizen 3.0
  */
@@ -134,6 +141,17 @@ typedef enum {
 	IMAGE_UTIL_GIF,		 /**< Image format GIF */
 	IMAGE_UTIL_BMP,		 /**< Image format BMP */
 } image_util_type_e;
+
+/**
+ * @brief Enumeration for scale decoding.
+ * @since_tizen 2.4
+ */
+typedef enum {
+    IMAGE_UTIL_DOWNSCALE_1_1, /**< 1/1 downscale */
+    IMAGE_UTIL_DOWNSCALE_1_2,	/**< 1/2 downscale */
+    IMAGE_UTIL_DOWNSCALE_1_4,	/**< 1/4 downscale */
+    IMAGE_UTIL_DOWNSCALE_1_8,	/**< 1/8 downscale */
+} image_util_scale_e;
 
 /**
  * @brief Enumeration for PNG compression values.
@@ -153,7 +171,7 @@ typedef enum {
 } image_util_png_compression_e;
 
 /**
-* @ingroup CAPI_MEDIA_IMAGE_UTIL_MODULE
+* @ingroup CAPI_MEDIA_IMAGE_UTIL_ENCODE_DECODE_MODULE
 * @brief Called when Image-util decoding is finished just before returning the output.
 * @since_tizen 3.0
 *
@@ -173,7 +191,7 @@ typedef enum {
 typedef void (*image_util_decode_completed_cb) (int error_code, void *user_data, unsigned long width, unsigned long height, unsigned long long size);
 
 /**
-* @ingroup CAPI_MEDIA_IMAGE_UTIL_MODULE
+* @ingroup CAPI_MEDIA_IMAGE_UTIL_ENCODE_DECODE_MODULE
 * @brief Called when Image-util encoding is finished just before returning the output.
 * @since_tizen 3.0
 *
@@ -191,14 +209,14 @@ typedef void (*image_util_decode_completed_cb) (int error_code, void *user_data,
 typedef void (*image_util_encode_completed_cb) (int error_code, void *user_data, unsigned long long size);
 
 /**
-* @ingroup CAPI_MEDIA_IMAGE_UTIL_MODULE
+* @ingroup CAPI_MEDIA_IMAGE_UTIL_ENCODE_DECODE_MODULE
 * @brief Image-util decoding handle.
 * @since_tizen 3.0
 */
 typedef void *image_util_decode_h;
 
 /**
-* @ingroup CAPI_MEDIA_IMAGE_UTIL_MODULE
+* @ingroup CAPI_MEDIA_IMAGE_UTIL_ENCODE_DECODE_MODULE
 * @brief Image-util encoding handle.
 * @since_tizen 3.0
 */
