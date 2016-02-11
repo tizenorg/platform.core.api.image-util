@@ -35,6 +35,62 @@ extern "C"
  */
 
 /**
+* @brief Calculates the size of the image buffer for the specified resolution and colorspace.
+* @since_tizen 2.3
+*
+* @param[in] width The image width
+* @param[in] height The image height
+* @param[in] colorspace The image colorspace
+* @param[out] size The Calculated buffer size
+*
+* @return @c 0 on success,
+*               otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+*
+* @see image_util_transform_run()
+* @see image_util_decode_jpeg()
+* @see image_util_decode_jpeg_from_memory()
+* @see image_util_encode_jpeg()
+* @see image_util_encode_jpeg_to_memory()
+*/
+int image_util_calculate_buffer_size(int width, int height, image_util_colorspace_e colorspace , unsigned int *size);
+
+/**
+* @brief Extracts representative color from an image buffer
+* @since_tizen 3.0
+* @remarks @a image_buffer should be RGB888 colorspace.
+*
+* @param[in] image_buffer The original image buffer
+* @param[in] width The image width
+* @param[in] height The image height
+* @param[out] rgb_r The red color in RGB color space
+* @param[out] rgb_g The green color in RGB color space
+* @param[out] rgb_b The blue color in RGB color space
+*
+* @return 0 on success,
+*           otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_OUT_OF_MEMORY out of memory
+* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+*
+*/
+int image_util_extract_color_from_memory(const unsigned char *image_buffer, int width, int height, unsigned char *rgb_r, unsigned char *rgb_g, unsigned char *rgb_b);
+
+/**
+ * @}
+ */
+ 
+/**
+ * @addtogroup CAPI_MEDIA_IMAGE_UTIL_TRANSFORM_MODULE
+ * @{
+ */
+ 
+/**
 * @brief Creates a handle to image util transform.
 * @since_tizen 2.3
 *
@@ -333,74 +389,6 @@ int image_util_transform_run(transformation_h handle, media_packet_h src, image_
 int image_util_transform_destroy(transformation_h handle);
 
 /**
-* @deprecated Deprecated since 3.0. Use image_util_supported_colorspace_cb() instead.
-* @brief Called once for each supported JPEG encode/decode colorspace.
-* @since_tizen 2.3
-*
-* @param[in] colorspace The colorspace
-* @param[in] user_data The user data passed from the foreach function
-*
-* @return @c true to continue with the next iteration of the loop, \n
-*         otherwise @c false to break out of the loop
-*
-* @pre image_util_foreach_supported_jpeg_colorspace() invokes this callback.
-*
-* @see image_util_foreach_supported_jpeg_colorspace()
-* @see image_util_encode_jpeg()
-* @see image_util_encode_jpeg_to_memory()
-* @see image_util_decode_jpeg()
-* @see image_util_decode_jpeg_from_memory()
-*/
-typedef bool(*image_util_supported_jpeg_colorspace_cb)(image_util_colorspace_e colorspace, void *user_data);
-
-/**
-* @deprecated Deprecated since 3.0. Use image_util_foreach_supported_colorspace() instead.
-* @brief Retrieves all supported JPEG encoding/decoding colorspace by invoking a callback function once for each one.
-* @since_tizen 2.3
-*
-* @param[in] callback The callback function to invoke
-* @param[in] user_data The user data to be passed to the callback function
-* @return 0 on success,
-*         otherwise a negative error value
-*
-* @retval #IMAGE_UTIL_ERROR_NONE Successful
-* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
-* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
-* @post This function invokes image_util_supported_jpeg_colorspace_cb() repeatedly to retrieve each supported JPEG encoding/decoding colorspace.
-*
-* @see image_util_supported_jpeg_colorspace_cb()
-* @see image_util_encode_jpeg()
-* @see image_util_encode_jpeg_to_memory()
-* @see image_util_decode_jpeg()
-* @see image_util_decode_jpeg_from_memory()
-*/
-int image_util_foreach_supported_jpeg_colorspace(image_util_supported_jpeg_colorspace_cb callback, void *user_data);
-
-/**
-* @brief Calculates the size of the image buffer for the specified resolution and colorspace.
-* @since_tizen 2.3
-*
-* @param[in] width The image width
-* @param[in] height The image height
-* @param[in] colorspace The image colorspace
-* @param[out] size The Calculated buffer size
-*
-* @return @c 0 on success,
-*               otherwise a negative error value
-*
-* @retval #IMAGE_UTIL_ERROR_NONE Successful
-* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
-* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
-*
-* @see image_util_transform_run()
-* @see image_util_decode_jpeg()
-* @see image_util_decode_jpeg_from_memory()
-* @see image_util_encode_jpeg()
-* @see image_util_encode_jpeg_to_memory()
-*/
-int image_util_calculate_buffer_size(int width, int height, image_util_colorspace_e colorspace , unsigned int *size);
-
-/**
 * @internal
 * @brief Converts the image's colorspace.
 * @since_tizen 2.3
@@ -535,8 +523,58 @@ int image_util_rotate(unsigned char *dest, int *dest_width, int *dest_height, im
 */
 int image_util_crop(unsigned char *dest, int x, int y, int *width, int *height, const unsigned char *src, int src_width, int src_height, image_util_colorspace_e colorspace);
 
+/**
+ * @}
+ */
+ 
+/**
+* @addtogroup CAPI_MEDIA_IMAGE_UTIL_ENCODE_DECODE_MODULE
+* @{
+*/
+ 
+/**
+* @deprecated Deprecated since 3.0. Use image_util_supported_colorspace_cb() instead.
+* @brief Called once for each supported JPEG encode/decode colorspace.
+* @since_tizen 2.3
+*
+* @param[in] colorspace The colorspace
+* @param[in] user_data The user data passed from the foreach function
+*
+* @return @c true to continue with the next iteration of the loop, \n
+*         otherwise @c false to break out of the loop
+*
+* @pre image_util_foreach_supported_jpeg_colorspace() invokes this callback.
+*
+* @see image_util_foreach_supported_jpeg_colorspace()
+* @see image_util_encode_jpeg()
+* @see image_util_encode_jpeg_to_memory()
+* @see image_util_decode_jpeg()
+* @see image_util_decode_jpeg_from_memory()
+*/
+typedef bool(*image_util_supported_jpeg_colorspace_cb)(image_util_colorspace_e colorspace, void *user_data);
 
-
+/**
+* @deprecated Deprecated since 3.0. Use image_util_foreach_supported_colorspace() instead.
+* @brief Retrieves all supported JPEG encoding/decoding colorspace by invoking a callback function once for each one.
+* @since_tizen 2.3
+*
+* @param[in] callback The callback function to invoke
+* @param[in] user_data The user data to be passed to the callback function
+* @return 0 on success,
+*         otherwise a negative error value
+*
+* @retval #IMAGE_UTIL_ERROR_NONE Successful
+* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #IMAGE_UTIL_ERROR_PERMISSION_DENIED The application does not have the privilege to call this funtion
+* @post This function invokes image_util_supported_jpeg_colorspace_cb() repeatedly to retrieve each supported JPEG encoding/decoding colorspace.
+*
+* @see image_util_supported_jpeg_colorspace_cb()
+* @see image_util_encode_jpeg()
+* @see image_util_encode_jpeg_to_memory()
+* @see image_util_decode_jpeg()
+* @see image_util_decode_jpeg_from_memory()
+*/
+int image_util_foreach_supported_jpeg_colorspace(image_util_supported_jpeg_colorspace_cb callback, void *user_data);
 
 /**
 * @deprecated Deprecated since 3.0. Use image_util_decode_create() instead.
@@ -736,29 +774,6 @@ int image_util_encode_jpeg(const unsigned char *buffer, int width, int height, i
 * @see image_util_encode_jpeg()
 */
 int image_util_encode_jpeg_to_memory(const unsigned char *image_buffer, int width, int height, image_util_colorspace_e colorspace, int quality,  unsigned char **jpeg_buffer, unsigned int *jpeg_size);
-
-/**
-* @brief Extracts representative color from an image buffer
-* @since_tizen 3.0
-* @remarks @a image_buffer should be RGB888 colorspace.
-*
-* @param[in] image_buffer The original image buffer
-* @param[in] width The image width
-* @param[in] height The image height
-* @param[out] rgb_r The red color in RGB color space
-* @param[out] rgb_g The green color in RGB color space
-* @param[out] rgb_b The blue color in RGB color space
-*
-* @return 0 on success,
-*           otherwise a negative error value
-*
-* @retval #IMAGE_UTIL_ERROR_NONE Successful
-* @retval #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
-* @retval #IMAGE_UTIL_ERROR_OUT_OF_MEMORY out of memory
-* @retval #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
-*
-*/
-int image_util_extract_color_from_memory(const unsigned char *image_buffer, int width, int height, unsigned char *rgb_r, unsigned char *rgb_g, unsigned char *rgb_b);
 
 /**
 * @brief Called once for each supported image encode/decode colorspace.
