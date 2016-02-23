@@ -203,7 +203,7 @@ int main(int argc, char *argv[])
 		while ((dp = readdir(fd)) != NULL) {
 			if (!strcmp(dp->d_name, ".") || !strcmp(dp->d_name, ".."))
 				continue;		/* skip self and parent */
-			if(!number_files) {
+			if (!number_files) {
 				char *temp1 = strstr(dp->d_name, "-");
 				char *temp2 = strstr(dp->d_name, ".");
 

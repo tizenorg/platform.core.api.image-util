@@ -1687,7 +1687,7 @@ int image_util_encode_set_resolution(image_util_encode_h handle, unsigned long w
 				return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 			}
 
-			if(_handle->image_count <= _handle->current_resolution_count) {
+			if (_handle->image_count <= _handle->current_resolution_count) {
 				gif_data->frames = (mm_util_gif_frame_data **) realloc(gif_data->frames, (_handle->image_count + 1) * sizeof(mm_util_gif_frame_data *));
 				if (gif_data->frames == NULL) {
 					image_util_error("Error - OUT_OF_MEMORY");
@@ -1839,7 +1839,7 @@ int image_util_encode_set_gif_frame_delay_time(image_util_encode_h handle, unsig
 		image_util_error("Error allocating gif frames.");
 		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 	}
-	if(_handle->image_count <= _handle->current_delay_count) {
+	if (_handle->image_count <= _handle->current_delay_count) {
 		gif_data->frames = (mm_util_gif_frame_data **) realloc(gif_data->frames, (_handle->image_count + 1) * sizeof(mm_util_gif_frame_data *));
 		if (gif_data->frames == NULL) {
 			image_util_error("Error - OUT_OF_MEMORY");
@@ -1887,7 +1887,7 @@ int image_util_encode_set_input_buffer(image_util_encode_h handle, const unsigne
 			image_util_error("Error allocating gif frames.");
 			return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 		}
-		if(_handle->image_count <= _handle->current_buffer_count) {
+		if (_handle->image_count <= _handle->current_buffer_count) {
 			gif_data->frames = (mm_util_gif_frame_data **) realloc(gif_data->frames, (_handle->image_count + 1) * sizeof(mm_util_gif_frame_data *));
 			if (gif_data->frames == NULL) {
 				image_util_error("Error - OUT_OF_MEMORY");
