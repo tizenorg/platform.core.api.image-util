@@ -1910,6 +1910,17 @@ int image_util_encode_set_output_path(image_util_encode_h handle, const char *pa
 		_handle->dst_buffer = NULL;
 
 	_handle->path = path;
+	if (_handle->image_type == IMAGE_UTIL_GIF) {
+		mm_util_gif_data *gif_data;
+
+		gif_data = (mm_util_gif_data *) _handle->image_h;
+
+		if (gif_data->frames == NULL) {
+			image_util_error("Error allocating gif frames.");
+			return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+		}
+		mm_util_encode_open_gif_file(gif_data, path);
+	}
 
 	return err;
 }
@@ -1936,6 +1947,17 @@ int image_util_encode_set_output_buffer(image_util_encode_h handle, unsigned cha
 		_handle->path = NULL;
 
 	_handle->dst_buffer = (void **)dst_buffer;
+	if (_handle->image_type == IMAGE_UTIL_GIF) {
+		mm_util_gif_data *gif_data;
+
+		gif_data = (mm_util_gif_data *) _handle->image_h;
+
+		if (gif_data->frames == NULL) {
+			image_util_error("Error allocating gif frames.");
+			return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+		}
+		mm_util_encode_open_gif_memory(gif_data, _handle->dst_buffer);
+	}
 
 	return err;
 }
@@ -1980,7 +2002,6 @@ static int _image_util_encode_internal(decode_encode_s * _handle)
 	case IMAGE_UTIL_GIF:
 		{
 			mm_util_gif_data *gif_data;
-			void *dst_buffer = NULL;
 
 			gif_data = (mm_util_gif_data *) _handle->image_h;
 			if (gif_data == NULL) {
@@ -1993,14 +2014,9 @@ static int _image_util_encode_internal(decode_encode_s * _handle)
 			}
 
 			mm_util_gif_encode_set_image_count(gif_data, _handle->image_count);
-			if (_handle->path)
-				err = mm_util_encode_gif_to_file(gif_data, _handle->path);
-			else
-				err = mm_util_encode_gif_to_memory(gif_data, &dst_buffer);
+			err = mm_util_encode_gif(gif_data);
 
 			if (err == MM_UTIL_ERROR_NONE) {
-				if (_handle->dst_buffer)
-					*(_handle->dst_buffer) = (unsigned char *)dst_buffer;
 				_handle->dst_size = gif_data->size;
 				_handle->width = gif_data->width;
 				_handle->height = gif_data->height;
@@ -2214,6 +2230,7 @@ int image_util_encode_destroy(image_util_encode_h handle)
 				image_util_error("Invalid gif data");
 				return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 			}
+			mm_util_encode_close_gif(gif_data);
 			for (i = 1; i < _handle->image_count; i++)
 				IMAGE_UTIL_SAFE_FREE(gif_data->frames[i]);
 			IMAGE_UTIL_SAFE_FREE(gif_data->frames[0]);

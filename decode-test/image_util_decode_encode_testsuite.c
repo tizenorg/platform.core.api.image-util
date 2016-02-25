@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
 	image_util_encode_h encoded = NULL;
 	void *src = NULL;
 	unsigned char *data = NULL;
-	unsigned char **animated_data = NULL;
+	unsigned char *animated_data = NULL;
 	unsigned char *dst = NULL;
 	unsigned long long src_size = 0;
 	int encode_image_type = -1;
@@ -218,8 +218,21 @@ int main(int argc, char *argv[])
 			return 0;
 		}
 
+		ret = image_util_encode_create(IMAGE_UTIL_GIF, &encoded);
+		if (ret != IMAGE_UTIL_ERROR_NONE)
+			return 0;
+
+		if (!strcmp("encode-gif-mem", argv[1])) {
+			ret = image_util_encode_set_output_buffer(encoded, &dst);
+			if (ret != IMAGE_UTIL_ERROR_NONE)
+				return 0;
+		} else {
+			ret = image_util_encode_set_output_path(encoded, gif_filename);
+			if (ret != IMAGE_UTIL_ERROR_NONE)
+				return 0;
+		}
+
 		for (i = 0; i < number_files; i++) {
-			animated_data = (unsigned char **)realloc(animated_data, (i + 1) * sizeof(unsigned char *));
 			ret = image_util_decode_create(&decoded);
 			if (ret != IMAGE_UTIL_ERROR_NONE)
 				return 0;
@@ -230,7 +243,7 @@ int main(int argc, char *argv[])
 			if (ret != IMAGE_UTIL_ERROR_NONE)
 				return 0;
 
-			ret = image_util_decode_set_output_buffer(decoded, &animated_data[i]);
+			ret = image_util_decode_set_output_buffer(decoded, &animated_data);
 			if (ret != IMAGE_UTIL_ERROR_NONE)
 				return 0;
 
@@ -241,53 +254,35 @@ int main(int argc, char *argv[])
 			ret = image_util_decode_destroy(decoded);
 			if (ret != IMAGE_UTIL_ERROR_NONE)
 				return 0;
-		}
 
-		ret = image_util_encode_create(IMAGE_UTIL_GIF, &encoded);
-		if (ret != IMAGE_UTIL_ERROR_NONE)
-			return 0;
-
-		for (i = 0; i < number_files; i++) {
-			ret = image_util_encode_set_input_buffer(encoded, animated_data[i]);
+			ret = image_util_encode_set_input_buffer(encoded, animated_data);
 			if (ret != IMAGE_UTIL_ERROR_NONE)
 				return 0;
-		}
-		for (i = 0; i < number_files; i++) {
+
 			ret = image_util_encode_set_resolution(encoded, gif_image_width[i], gif_image_height[i]);
 			if (ret != IMAGE_UTIL_ERROR_NONE)
 				return 0;
-		}
-		for (i = 0; i < number_files; i++) {
+
 			ret = image_util_encode_set_gif_frame_delay_time(encoded, 10);
 			if (ret != IMAGE_UTIL_ERROR_NONE)
 				return 0;
-		}
-		if (!strcmp("encode-gif-mem", argv[1])) {
-			ret = image_util_encode_set_output_buffer(encoded, &dst);
-			if (ret != IMAGE_UTIL_ERROR_NONE)
-				return 0;
-		} else {
-			ret = image_util_encode_set_output_path(encoded, gif_filename);
-			if (ret != IMAGE_UTIL_ERROR_NONE)
-				return 0;
-		}
-		ret = image_util_encode_run(encoded, &image_size);
-		if (ret != IMAGE_UTIL_ERROR_NONE)
-			return 0;
 
-		if (!strcmp("encode-gif-mem", argv[1])) {
-			_write_file(gif_filename, (void *)dst, image_size);
-			free(dst);
+			ret = image_util_encode_run(encoded, &image_size);
+			if (ret != IMAGE_UTIL_ERROR_NONE)
+				return 0;
+
+			free(animated_data);
 		}
 
 		ret = image_util_encode_destroy(encoded);
 		if (ret != IMAGE_UTIL_ERROR_NONE)
 			return 0;
 
-		for (i = 0; i < number_files; i++)
-			free(animated_data[i]);
-		free(animated_data);
-
+		if (!strcmp("encode-gif-mem", argv[1])) {
+			_write_file(gif_filename, (void *)dst, image_size);
+			free(dst);
+			dst = NULL;
+		}
 		return 0;
 	} else if (!strcmp("decode", argv[1]) || !strcmp("decode-mem", argv[1]) || !strcmp("decode-async", argv[1])) {
 		if (argc < 4) {
@@ -400,15 +395,14 @@ int main(int argc, char *argv[])
 		if (ret != IMAGE_UTIL_ERROR_NONE)
 			return 0;
 
-		if (!strcmp("decode-mem", argv[1]) && (encode_image_type != IMAGE_UTIL_BMP)) {
-			_write_file(filename, (void *)dst, image_size);
-			free(dst);
-		}
-
 		ret = image_util_encode_destroy(encoded);
 		if (ret != IMAGE_UTIL_ERROR_NONE)
 			return 0;
 
+		if (!strcmp("decode-mem", argv[1]) && (encode_image_type != IMAGE_UTIL_BMP)) {
+			_write_file(filename, (void *)dst, image_size);
+			free(dst);
+		}
 		free(data);
 	} else {
 		fprintf(stderr, "\tDECODED data is NULL\n");
