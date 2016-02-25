@@ -1360,7 +1360,8 @@ int image_util_encode_set_output_path(image_util_encode_h handle, const char *pa
 *
 * @remarks One of image_util_encode_set_output_path() or image_util_encode_set_output_buffer() should be set.\n
 *          If both are set then the latest output set is considered.\n
-*          Output buffer setting is not supported for bmp. IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT will be returned for bmp.
+*          Output buffer setting is not supported for bmp. IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT will be returned for bmp.\n
+*          In case of gif encoding, the output buffer will be completely available only after image_util_encode_destroy().
 *
 * @param[in] handle The handle to image util encoding
 * @param[in] dst_buffer The output image buffer
@@ -1396,6 +1397,7 @@ int image_util_encode_set_output_buffer(image_util_encode_h handle, unsigned cha
 *		When any of the @pre functions are not called, IMAGE_UTIL_ERROR_INVALID_PARAMETER is returned.\n
 *		In case of animated gif encoding, image_util_encode_set_resolution(), image_util_encode_set_input_buffer() and\n
 *		image_util_encode_set_gif_frame_delay_time() MUST be called for each frame.
+*		In case of animated gif encoding, call image_util_encode_run() for each frame to encode progressively.
 *
 * @param[in] handle The handle to image util encoding
 * @param[out] size Size of the encoded image
@@ -1433,6 +1435,7 @@ int image_util_encode_run(image_util_encode_h handle, unsigned long long *size);
 *		When any of the @pre functions are not called, IMAGE_UTIL_ERROR_INVALID_PARAMETER is returned.\n
 *		In case of animated gif encoding, image_util_encode_set_resolution(), image_util_encode_set_input_buffer() and\n
 *		image_util_encode_set_gif_frame_delay_time() MUST be called for each frame.
+*		In case of animated gif encoding, call image_util_encode_run_async() for each frame to encode progressively.
 *
 * @param[in] handle The handle to image util encoding
 * @param[in] callback The callback function to be invoked
