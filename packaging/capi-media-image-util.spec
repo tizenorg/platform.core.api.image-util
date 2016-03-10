@@ -12,6 +12,7 @@ BuildRequires:  pkgconfig(mmutil-imgp)
 BuildRequires:  pkgconfig(mmutil-png)
 BuildRequires:  pkgconfig(mmutil-gif)
 BuildRequires:  pkgconfig(mmutil-bmp)
+BuildRequires:  pkgconfig(mmutil-webp)
 BuildRequires:  pkgconfig(capi-base-common)
 BuildRequires:  pkgconfig(capi-media-tool)
 BuildRequires:  pkgconfig(glib-2.0)
@@ -21,6 +22,7 @@ BuildRequires:  libpng-devel
 BuildRequires:  giflib-devel
 BuildRequires:  libbmp-devel
 BuildRequires:  libnsbmp-devel
+BuildRequires:  libwebp-devel
 
 %description
 A Image Utility library in Tizen Native API package
@@ -36,6 +38,7 @@ Requires:  pkgconfig(mmutil-imgp)
 Requires:  pkgconfig(mmutil-png)
 Requires:  pkgconfig(mmutil-gif)
 Requires:  pkgconfig(mmutil-bmp)
+Requires:  pkgconfig(mmutil-webp)
 Requires:  pkgconfig(capi-base-common)
 
 %description devel

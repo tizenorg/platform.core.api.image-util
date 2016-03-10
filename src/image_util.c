@@ -21,6 +21,7 @@
 #include <mm_util_png.h>
 #include <mm_util_gif.h>
 #include <mm_util_bmp.h>
+#include <mm_util_webp.h>
 #include <image_util.h>
 #include <image_util_private.h>
 #include <stdio.h>
@@ -137,6 +138,24 @@ static int _convert_bmp_colorspace_tbl[] = {
 	-1,							/* IMAGE_UTIL_COLORSPACE_NV21 */
 	-1,							/* IMAGE_UTIL_COLORSPACE_NV16 */
 	-1,							/* IMAGE_UTIL_COLORSPACE_NV61 */
+};
+
+static int _convert_webp_colorspace_tbl[] = {
+	-1					,	/* IMAGE_UTIL_COLORSPACE_YUV420 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_YUV422 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_I420 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_NV12 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_UYVY */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_YUYV */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_RGB565 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_RGB888 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_ARGB8888 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_BGRA8888 */
+	MM_UTIL_WEBP_FMT_RGBA8888		,	/* IMAGE_UTIL_COLORSPACE_RGBA8888 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_BGRX8888 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_NV21 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_NV16 */
+	-1					,	/* IMAGE_UTIL_COLORSPACE_NV61 */
 };
 
 static int _convert_decode_scale_tbl[] = {
@@ -879,6 +898,14 @@ int image_util_foreach_supported_colorspace(image_util_type_e image_type, image_
 
 		}
 		break;
+	case IMAGE_UTIL_WEBP:
+		for (i = sizeof(_convert_webp_colorspace_tbl) / sizeof(int) - 1; i >= 0; i--) {
+			if (_convert_webp_colorspace_tbl[i] != -1)
+				if (false == callback(i, user_data))
+					return IMAGE_UTIL_ERROR_NONE;
+
+		}
+		break;
 	default:
 		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 	}
@@ -946,6 +973,20 @@ static int _image_util_decode_create_bmp_handle(decode_encode_s * handle)
 	return err;
 }
 
+static int _image_util_decode_create_webp_handle(decode_encode_s * handle)
+{
+	int err = MM_UTIL_ERROR_NONE;
+
+	image_util_retvm_if((handle == NULL), MM_UTIL_ERROR_INVALID_PARAMETER, "Invalid Handle");
+
+	mm_util_webp_data *_handle = (mm_util_webp_data *) calloc(1, sizeof(mm_util_webp_data));
+	image_util_retvm_if((_handle == NULL), MM_UTIL_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY(0x%08x)", MM_UTIL_ERROR_OUT_OF_MEMORY);
+
+	handle->image_h = (mm_util_imgp_h) _handle;
+
+	return err;
+}
+
 int image_util_decode_create(image_util_decode_h * handle)
 {
 	int err = MM_UTIL_ERROR_NONE;
@@ -974,6 +1015,7 @@ static char _JPEG_HEADER[] = { 0xFF, 0xD8 };
 static char _PNG_HEADER[] = { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a };
 static char _GIF_HEADER[] = { 'G', 'I', 'F' };
 static char _BMP_HEADER[] = { 'B', 'M' };
+static char _WEBP_HEADER[] = { 'R', 'I', 'F', 'F'  };
 
 static int _image_util_decode_create_image_handle(image_util_decode_h handle, const unsigned char *src_buffer)
 {
@@ -991,6 +1033,8 @@ static int _image_util_decode_create_image_handle(image_util_decode_h handle, co
 		_GIF_HEADER, sizeof(_GIF_HEADER), IMAGE_UTIL_GIF}
 		, {
 		_BMP_HEADER, sizeof(_BMP_HEADER), IMAGE_UTIL_BMP}
+		, { 
+		_WEBP_HEADER, sizeof(_WEBP_HEADER), IMAGE_UTIL_WEBP}
 	,};
 	unsigned int i = 0;
 	int err = MM_UTIL_ERROR_NONE;
@@ -1026,6 +1070,9 @@ static int _image_util_decode_create_image_handle(image_util_decode_h handle, co
 		break;
 	case IMAGE_UTIL_BMP:
 		err = _image_util_decode_create_bmp_handle(_handle);
+		break;
+	case IMAGE_UTIL_WEBP:
+		err = _image_util_decode_create_webp_handle(_handle);
 		break;
 	default:
 		err = MM_UTIL_ERROR_NOT_SUPPORTED_FORMAT;
@@ -1152,6 +1199,9 @@ int image_util_decode_set_colorspace(image_util_encode_h handle, image_util_colo
 	case IMAGE_UTIL_BMP:
 		image_util_retvm_if((_convert_bmp_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
 		break;
+	case IMAGE_UTIL_WEBP:
+		image_util_retvm_if((_convert_webp_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
+			break;
 	default:
 		image_util_error("Invalid image type");
 		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
@@ -1283,6 +1333,29 @@ static int _image_util_decode_internal(decode_encode_s * _handle)
 				_handle->dst_size = bmp_data->size;
 				_handle->width = bmp_data->width;
 				_handle->height = bmp_data->height;
+			}
+		}
+		break;
+	case IMAGE_UTIL_WEBP:
+		{
+			mm_util_webp_data *webp_data;
+
+			webp_data = (mm_util_webp_data *) _handle->image_h;
+			if (webp_data == NULL) {
+				image_util_error("Invalid webp data");
+				return MM_UTIL_ERROR_INVALID_PARAMETER;
+			}
+
+			if (_handle->path)
+				err = mm_util_decode_from_webp_file(webp_data, _handle->path);
+			else
+				err = mm_util_decode_from_webp_memory(webp_data, &_handle->src_buffer[0], _handle->src_size);
+
+			if (err == MM_UTIL_ERROR_NONE) {
+				*(_handle->dst_buffer) = webp_data->data;
+				_handle->dst_size = webp_data->size;
+				_handle->width = webp_data->width;
+				_handle->height = webp_data->height;
 			}
 		}
 		break;
@@ -1481,6 +1554,18 @@ int image_util_decode_destroy(image_util_decode_h handle)
 			IMAGE_UTIL_SAFE_FREE(bmp_data);
 		}
 		break;
+	case IMAGE_UTIL_WEBP:
+		{
+			mm_util_webp_data *webp_data;
+
+			webp_data = (mm_util_webp_data *) _handle->image_h;
+			if (webp_data == NULL) {
+				image_util_error("Invalid webp data");
+				return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+			}
+			IMAGE_UTIL_SAFE_FREE(webp_data);
+		}
+		break;
 	default:
 		break;
 	}
@@ -1578,6 +1663,19 @@ static int _image_util_encode_create_bmp_handle(decode_encode_s * handle)
 	return err;
 }
 
+static int _image_util_encode_create_webp_handle(decode_encode_s * handle)
+{
+	int err = MM_UTIL_ERROR_NONE;
+	image_util_retvm_if((handle == NULL), MM_UTIL_ERROR_INVALID_PARAMETER, "Invalid Handle");
+
+	mm_util_webp_data *_handle = (mm_util_webp_data *) calloc(1, sizeof(mm_util_webp_data));
+	image_util_retvm_if((_handle == NULL), MM_UTIL_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY(0x%08x)", MM_UTIL_ERROR_OUT_OF_MEMORY);
+
+	handle->image_h = (mm_util_imgp_h) _handle;
+
+	return err;
+}
+
 int image_util_encode_create(image_util_type_e image_type, image_util_encode_h * handle)
 {
 	int err = MM_UTIL_ERROR_NONE;
@@ -1612,6 +1710,9 @@ int image_util_encode_create(image_util_type_e image_type, image_util_encode_h *
 		break;
 	case IMAGE_UTIL_BMP:
 		err = _image_util_encode_create_bmp_handle(_handle);
+		break;
+	case IMAGE_UTIL_WEBP:
+		err = _image_util_encode_create_webp_handle(_handle);
 		break;
 	default:
 		err = MM_UTIL_ERROR_INVALID_PARAMETER;
@@ -1723,6 +1824,19 @@ int image_util_encode_set_resolution(image_util_encode_h handle, unsigned long w
 			mm_util_bmp_encode_set_height(bmp_data, height);
 		}
 		break;
+	case IMAGE_UTIL_WEBP:
+		{
+			mm_util_webp_data *webp_data;
+
+			webp_data = (mm_util_webp_data *) _handle->image_h;
+			if (webp_data == NULL) {
+				image_util_error("Invalid webp data");
+				return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+			}
+			mm_util_webp_encode_set_width(webp_data, width);
+			mm_util_webp_encode_set_height(webp_data, height);
+		}
+		break;
 	default:
 		err = IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 		break;
@@ -1758,6 +1872,9 @@ int image_util_encode_set_colorspace(image_util_encode_h handle, image_util_colo
 	case IMAGE_UTIL_BMP:
 		image_util_retvm_if((_convert_bmp_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
 		break;
+	case IMAGE_UTIL_WEBP:
+		image_util_retvm_if((_convert_webp_colorspace_tbl[colorspace] == -1), IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT, "not supported format");
+		break;
 	default:
 		image_util_error("Invalid image type");
 		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
@@ -1777,7 +1894,7 @@ int image_util_encode_set_quality(image_util_encode_h handle, int quality)
 		image_util_error("Invalid Handle");
 		return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 	}
-	if (_handle->image_type != IMAGE_UTIL_JPEG) {
+	if (_handle->image_type != IMAGE_UTIL_JPEG && _handle->image_type != IMAGE_UTIL_WEBP) {
 		image_util_error("Wrong image format");
 		return IMAGE_UTIL_ERROR_NOT_SUPPORTED_FORMAT;
 	}
@@ -2065,6 +2182,33 @@ static int _image_util_encode_internal(decode_encode_s * _handle)
 			}
 		}
 		break;
+	case IMAGE_UTIL_WEBP:
+		{
+			mm_util_webp_data *webp_data;
+			void *dst_buffer = NULL;
+
+			webp_data = (mm_util_webp_data *) _handle->image_h;
+			if (webp_data == NULL) {
+				image_util_error("Invalid webp data");
+				return MM_UTIL_ERROR_INVALID_PARAMETER;
+			}
+
+			webp_data->data = _handle->src_buffer[0];
+			mm_util_webp_encode_set_quality(webp_data, _handle->quality);
+			if (_handle->path)
+				err = mm_util_encode_webp_to_file(webp_data, _handle->path);
+			else
+				err = mm_util_encode_webp_to_memory(webp_data, &dst_buffer);
+
+			if (err == MM_UTIL_ERROR_NONE) {
+				if (_handle->dst_buffer)
+					*(_handle->dst_buffer) = (unsigned char *)dst_buffer;
+				_handle->dst_size = webp_data->size;
+				_handle->width = webp_data->width;
+				_handle->height = webp_data->height;
+			}
+		}
+		break;
 	default:
 		err = MM_UTIL_ERROR_INVALID_PARAMETER;
 		break;
@@ -2263,6 +2407,18 @@ int image_util_encode_destroy(image_util_encode_h handle)
 				return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
 			}
 			IMAGE_UTIL_SAFE_FREE(bmp_data);
+		}
+		break;
+	case IMAGE_UTIL_WEBP:
+		{
+			mm_util_webp_data *webp_data;
+
+			webp_data = (mm_util_webp_data *) _handle->image_h;
+			if (webp_data == NULL) {
+				image_util_error("Invalid webp data");
+				return IMAGE_UTIL_ERROR_INVALID_PARAMETER;
+			}
+			IMAGE_UTIL_SAFE_FREE(webp_data);
 		}
 		break;
 	default:

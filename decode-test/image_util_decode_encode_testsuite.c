@@ -330,7 +330,7 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "\tIMAGE OPERATION SUCCESS\n");
 	if (data) {
 		fprintf(stderr, "\t##Decoded data##: %p\t width: %lu\t height:%lu\n", data, (long unsigned int)image_width, (long unsigned int)image_height);
-		char filename[BUFFER_SIZE] = { 0, }, type[4] = {
+		char filename[BUFFER_SIZE] = { 0, }, type[5] = {
 		0,};
 		memset(filename, 0, BUFFER_SIZE);
 
@@ -351,6 +351,9 @@ int main(int argc, char *argv[])
 		case IMAGE_UTIL_BMP:
 			snprintf(type, 4, "%s", "bmp");
 			break;
+		case IMAGE_UTIL_WEBP:
+			snprintf(type, 5, "%s", "webp");
+			break;
 		default:
 			break;
 		}
@@ -364,7 +367,7 @@ int main(int argc, char *argv[])
 		if (ret != IMAGE_UTIL_ERROR_NONE)
 			return 0;
 
-		if (encode_image_type == IMAGE_UTIL_JPEG) {
+		if (encode_image_type == IMAGE_UTIL_JPEG || encode_image_type == IMAGE_UTIL_WEBP) {
 			ret = image_util_encode_set_quality(encoded, 100);
 			if (ret != IMAGE_UTIL_ERROR_NONE)
 				return 0;
