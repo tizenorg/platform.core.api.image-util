@@ -61,7 +61,7 @@ extern "C"
 
 #define IMGCV_FUNC_NAME "mm_util_cv_extract_representative_color"
 #define PATH_MMUTIL_IMGCV_LIB "/usr/lib/libmmutil_imgcv.so"
-typedef gboolean (*ModuleFunc)(void *, int, int, unsigned char *, unsigned char *, unsigned char *);
+typedef gboolean(*ModuleFunc)(void *, int, int, unsigned char *, unsigned char *, unsigned char *);
 
 typedef struct {
 	void *user_data;

@@ -176,9 +176,9 @@ typedef enum {
 * @remarks The output will be stored in the pointer set using image_util_decode_set_output_buffer() after this callback.
 *
 * @param[in] error_code The error code of image util decoding
-* 			#IMAGE_UTIL_ERROR_NONE Successful
-* 			#IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
-* 			#IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+*                    #IMAGE_UTIL_ERROR_NONE Successful
+*                    #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+*                    #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
 * @param[in] user_data The user data passed from the callback registration function
 * @param[in] width Width of the decoded image
 * @param[in] height Height of the decoded image
@@ -196,9 +196,9 @@ typedef void (*image_util_decode_completed_cb) (int error_code, void *user_data,
 * @remarks The output will be stored in the pointer set using image_util_encode_set_output_buffer() or image_util_encode_set_output_path() after this callback.
 *
 * @param[in] error_code The error code of image util encoding
-* 			#IMAGE_UTIL_ERROR_NONE Successful
-* 			#IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
-* 			#IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
+*                    #IMAGE_UTIL_ERROR_NONE Successful
+*                    #IMAGE_UTIL_ERROR_INVALID_PARAMETER Invalid parameter
+*                    #IMAGE_UTIL_ERROR_INVALID_OPERATION Invalid operation
 * @param[in] user_data The user data passed from the callback registration function
 * @param[in] size Size of the encoded image
 *
