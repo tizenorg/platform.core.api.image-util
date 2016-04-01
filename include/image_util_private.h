@@ -46,14 +46,14 @@ extern "C"
 	} while (0)
 
 #define image_util_retm_if(expr, fmt, arg...) do { \
-		if(expr) { \
+		if (expr) { \
 			LOGE(FONT_COLOR_RED""fmt"", ##arg);     \
 			return; \
 		} \
 	} while (0)
 
 #define image_util_retvm_if(expr, val, fmt, arg...) do { \
-		if(expr) { \
+		if (expr) { \
 			LOGE(FONT_COLOR_RED""fmt"", ##arg);     \
 			return (val); \
 		} \
@@ -61,7 +61,7 @@ extern "C"
 
 #define IMGCV_FUNC_NAME "mm_util_cv_extract_representative_color"
 #define PATH_MMUTIL_IMGCV_LIB "/usr/lib/libmmutil_imgcv.so"
-typedef gboolean (*ModuleFunc) (void *, int, int, unsigned char *, unsigned char *, unsigned char *);
+typedef gboolean (*ModuleFunc)(void *, int, int, unsigned char *, unsigned char *, unsigned char *);
 
 typedef struct {
 	void *user_data;
@@ -111,7 +111,7 @@ typedef struct {
 	unsigned long width;
 	unsigned long height;
 	bool is_decode;
-        int quality;
+	int quality;
 	unsigned int image_count;
 	unsigned int current_buffer_count;
 	unsigned int current_resolution_count;
