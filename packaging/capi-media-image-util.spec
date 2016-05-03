@@ -1,6 +1,6 @@
 Name:       capi-media-image-util
 Summary:    A Image Utility library in Tizen Native API
-Version:    0.1.9
+Version:    0.1.10
 Release:    1
 Group:      Multimedia/API
 License:    Apache-2.0
@@ -59,6 +59,11 @@ export CFLAGS+=" -Wno-ignored-qualifiers -Wno-unused-parameter -Wshadow"
 export CFLAGS+=" -Wwrite-strings -Wswitch-default"
 MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
 %cmake . -DFULLVER=%{version} -DMAJORVER=${MAJORVER} \
+%if "%{?profile}"=="wearable"
+ -DTIZEN_WEARABLE=YES \
+%else
+ -DTIZEN_MOBILE=YES \
+%endif
 %if 0%{?model_build_feature_multimedia_image_hw_acceleration}
  -DFEATURE_ENABLE_HW_ACCELERATION:BOOL=ON
 %else

@@ -36,7 +36,11 @@ SET(PREFIX ${CMAKE_INSTALL_PREFIX})
 SET(VERSION ${version})
 
 SET(INC_DIR include)
-INCLUDE_DIRECTORIES(${INC_DIR})
+IF (TIZEN_WEARABLE)
+INCLUDE_DIRECTORIES(${INC_DIR}/wearable)
+ELSE ()
+INCLUDE_DIRECTORIES(${INC_DIR}/mobile)
+ENDIF (TIZEN_WEARABLE)
 
 INCLUDE(FindPkgConfig)
 pkg_check_modules(${fw_name} REQUIRED ${dependents})
@@ -73,12 +77,21 @@ SET_TARGET_PROPERTIES(${fw_name}
 
 
 INSTALL(TARGETS ${fw_name} DESTINATION ${LIB_INSTALL_DIR})
+IF (TIZEN_WEARABLE)
 INSTALL(
-        DIRECTORY ${INC_DIR}/ DESTINATION include/${service}
+        DIRECTORY ${INC_DIR}/wearable/ DESTINATION include/${service}
         FILES_MATCHING
         PATTERN "*_private.h" EXCLUDE
-        PATTERN "${INC_DIR}/*.h"
+        PATTERN "${INC_DIR}/wearable/*.h"
         )
+ELSE ()
+INSTALL(
+        DIRECTORY ${INC_DIR}/mobile/ DESTINATION include/${service}
+        FILES_MATCHING
+        PATTERN "*_private.h" EXCLUDE
+        PATTERN "${INC_DIR}/mobile/*.h"
+        )
+ENDIF (TIZEN_WEARABLE)
 
 SET(PC_NAME ${fw_name})
 SET(PC_REQUIRED ${pc_dependents})
