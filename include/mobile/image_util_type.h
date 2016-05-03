@@ -142,7 +142,7 @@ typedef enum {
 
 /**
  * @brief Enumeration for scale decoding.
- * @since_tizen 2.4
+ * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
  */
 typedef enum {
 	IMAGE_UTIL_DOWNSCALE_1_1, /**< 1/1 downscale */
