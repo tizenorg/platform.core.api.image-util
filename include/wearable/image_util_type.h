@@ -112,6 +112,7 @@ typedef struct transformation_s *transformation_h;
 * @since_tizen 2.3
 *
 * @remarks You must release the @a dst result using media_packet_destroy().
+*          The callback is called in a separate thread(not in the main loop).
 *
 * @param[in] error_code The error code of image util transfrom
 * @param[in, out] dst The result buffer of image util transform
@@ -174,6 +175,7 @@ typedef enum {
 * @since_tizen 3.0
 *
 * @remarks The output will be stored in the pointer set using image_util_decode_set_output_buffer() after this callback.
+*          The callback is called in a separate thread(not in the main loop).
 *
 * @param[in] error_code The error code of image util decoding
 *                    #IMAGE_UTIL_ERROR_NONE Successful
@@ -194,6 +196,7 @@ typedef void (*image_util_decode_completed_cb) (int error_code, void *user_data,
 * @since_tizen 3.0
 *
 * @remarks The output will be stored in the pointer set using image_util_encode_set_output_buffer() or image_util_encode_set_output_path() after this callback.
+*          The callback is called in a separate thread(not in the main loop).
 *
 * @param[in] error_code The error code of image util encoding
 *                    #IMAGE_UTIL_ERROR_NONE Successful
